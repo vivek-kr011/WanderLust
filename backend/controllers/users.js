@@ -28,7 +28,7 @@ module.exports.signup = async (req, res, next) => {
         },
         process.env.JWT_SECRET,
         {
-          expiresIn: "7d",
+          expiresIn: "3d",
         },
       );
 
@@ -46,7 +46,7 @@ module.exports.signup = async (req, res, next) => {
   } catch (err) {
     console.error("========== SIGNUP ERROR ==========");
     console.error(err);
-    console.error(err.stack);
+    // console.error(err.stack);
 
     return res.status(400).json({
       success: false,
@@ -96,7 +96,7 @@ module.exports.login = async (req, res) => {
         },
         process.env.JWT_SECRET,
         {
-          expiresIn: "7d",
+          expiresIn: "3d",
         },
       );
 
