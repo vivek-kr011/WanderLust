@@ -1,8 +1,5 @@
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
-
-  console.log("SECRET =", process.env.SECRET);
-console.log("JWT_SECRET =", process.env.JWT_SECRET);
 }
 
 const express = require("express");
@@ -31,20 +28,19 @@ const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const bookingRoutes = require("./routes/booking.js");
+const dashboardRoutes = require("./routes/dashboard.js");
 
 
 const dbUrl = process.env.ATLASDB_URL;
 
-/* ===========================
-   Database Connection
-=========================== */
+/* --------------- Database Connection ------------- */
 
 async function connectDB() {
   try {
     await mongoose.connect(dbUrl);
-    console.log("✅ Database connected successfully");
+    console.log("Database connected successfully");
   } catch (err) {
-    console.error("❌ Database connection failed");
+    console.error("Database connection failed");
     console.error(err);
     process.exit(1);
   }
@@ -52,19 +48,16 @@ async function connectDB() {
 
 connectDB();
 
-/* ===========================
-   View Engine
-=========================== */
+/* ------------------ View Engine------------ */
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.engine("ejs", ejsMate);
 
-/* ===========================
-   Middlewares
-=========================== */
 
-// ✅ CORS (Frontend React)
+/* ---------- Middlewares ------------ */
+
+// CORS (Frontend React)
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -72,19 +65,18 @@ app.use(
   })
 );
 
-// ✅ Parse JSON
+// Parse JSON
 app.use(express.json());
 
-// ✅ Parse Form Data
+// Parse Form Data
 app.use(express.urlencoded({ extended: true }));
 
 app.use(methodOverride("_method"));
 
 app.use(express.static(path.join(__dirname, "public")));
 
-/* ===========================
-   Session Store
-=========================== */
+
+/* ------------- Session Store --------------- */
 
 const store = MongoStore.create({
   mongoUrl: dbUrl,
@@ -111,9 +103,7 @@ const sessionOptions = {
 app.use(session(sessionOptions));
 app.use(flash());
 
-/* ===========================
-   Passport
-=========================== */
+/* -------------- Passport --------------  */
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -123,9 +113,7 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-/* ===========================
-   Global Variables
-=========================== */
+/* ---------------- Global Variables -------------- */
 
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
@@ -135,9 +123,7 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ===========================
-   Routes
-=========================== */
+/* ----------- Routes ------------ */
 
 app.use("/listings/:id/reviews", reviewRouter);
 
@@ -145,19 +131,19 @@ app.use("/listings/:id/bookings", bookingRoutes);
 
 app.use("/listings", listingRouter);
 
+app.use("/dashboard", dashboardRoutes);
+
 app.use("/", userRouter);
 
-/* ===========================
-   404
-=========================== */
+
+/* ---------- 404 ----------- */
 
 app.all("*", (req, res, next) => {
   next(new ExpressError(404, "Page not found"));
 });
 
-/* ===========================
-   Error Handler
-=========================== */
+
+/* ------------- Error Handler ------------*/
 
 app.use((err, req, res, next) => {
   let { statusCode = 500, message = "Something went wrong" } = err;
@@ -169,9 +155,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-/* ===========================
-   Server
-=========================== */
+/* ----------------- Server ---------------*/
 
 app.listen(8080, () => {
   console.log("🚀 Server running on http://localhost:8080");
