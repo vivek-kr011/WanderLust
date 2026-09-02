@@ -650,66 +650,178 @@ The project is being organized into separate frontend and backend applications.
 ```text
 WanderLust/
 │
+├── backend/
+│   │
+│   ├── config/
+│   │   └── cloudConfig.js
+│   │
+│   ├── controllers/
+│   │   ├── bookings.js
+│   │   ├── dashboard.js
+│   │   ├── listings.js
+│   │   ├── reviews.js
+│   │   └── users.js
+│   │
+│   ├── init/
+│   │   ├── data.js
+│   │   └── index.js
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   └── index.js
+│   │
+│   ├── models/
+│   │   ├── booking.js
+│   │   ├── listing.js
+│   │   ├── review.js
+│   │   └── user.js
+│   │
+│   ├── public/
+│   │   ├── CSS/
+│   │   │   ├── rating.css
+│   │   │   └── style.css
+│   │   │
+│   │   └── js/
+│   │       ├── map.js
+│   │       └── script.js
+│   │
+│   ├── routes/
+│   │   ├── booking.js
+│   │   ├── dashboard.js
+│   │   ├── listing.js
+│   │   ├── review.js
+│   │   └── user.js
+│   │
+│   ├── utils/
+│   │   ├── ExpressError.js
+│   │   └── wrapAsync.js
+│   │
+│   ├── .env
+│   ├── app.js
+│   ├── package-lock.json
+│   ├── package.json
+│   └── schema.js
+│
+│
 ├── frontend/
+│   │
+│   ├── node_modules/
+│   │
+│   ├── public/
 │   │
 │   ├── src/
 │   │   │
 │   │   ├── assets/
 │   │   │
 │   │   ├── components/
-│   │   │   ├── Navbar/
-│   │   │   ├── Listings/
+│   │   │   │
+│   │   │   ├── Auth/
+│   │   │   │   ├── AuthButton.jsx
+│   │   │   │   ├── AuthInput.jsx
+│   │   │   │   ├── AuthLayout.jsx
+│   │   │   │   ├── Divider.jsx
+│   │   │   │   └── SocialLoginButton.jsx
+│   │   │   │
+│   │   │   ├── Bookings/
+│   │   │   │   └── HostBookingCard.jsx
+│   │   │   │
+│   │   │   ├── Categories/
+│   │   │   │   ├── Categories.jsx
+│   │   │   │   └── CategoryItem.jsx
+│   │   │   │
+│   │   │   ├── HostDashboard/
+│   │   │   │   ├── DashboardStats.jsx
+│   │   │   │   ├── HostBookings.jsx
+│   │   │   │   ├── MyListings.jsx
+│   │   │   │   └── StatCard.jsx
+│   │   │   │
 │   │   │   ├── ListingDetails/
-│   │   │   └── ...
-│   │   │
-│   │   ├── pages/
-│   │   │   ├── HomePage.jsx
-│   │   │   ├── SearchResultPage.jsx
-│   │   │   ├── ListingDetailsPage.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Signup.jsx
-│   │   │   ├── CreateListing.jsx
-│   │   │   ├── EditListing.jsx
-│   │   │   ├── MyListings.jsx
-│   │   │   ├── Profile.jsx
-│   │   │   └── HostDashboard.jsx
-│   │   │
-│   │   ├── data/
-│   │   │   ├── listings.js
-│   │   │   └── categories.js
+│   │   │   │   ├── Amenities.jsx
+│   │   │   │   ├── BookingCard.jsx
+│   │   │   │   ├── HostInfo.jsx
+│   │   │   │   ├── ListingDescription.jsx
+│   │   │   │   ├── ListingHero.jsx
+│   │   │   │   └── ListingInfo.jsx
+│   │   │   │
+│   │   │   ├── Listings/
+│   │   │   │   ├── ListingCard.jsx
+│   │   │   │   └── Listings.jsx
+│   │   │   │
+│   │   │   ├── MyBookings/
+│   │   │   │   └── MyBookingCard.jsx
+│   │   │   │
+│   │   │   ├── Navbar/
+│   │   │   │   ├── Logo.jsx
+│   │   │   │   ├── NavActions.jsx
+│   │   │   │   ├── Navbar.jsx
+│   │   │   │   ├── NavLinks.jsx
+│   │   │   │   ├── ProfileMenu.jsx
+│   │   │   │   └── SearchBar.jsx
+│   │   │   │
+│   │   │   ├── NewListing/
+│   │   │   │   └── NewListingForm.jsx
+│   │   │   │
+│   │   │   ├── Profile/
+│   │   │   │   ├── EditProfileModal.jsx
+│   │   │   │   ├── ProfileHeader.jsx
+│   │   │   │   └── UserInfoCard.jsx
+│   │   │   │
+│   │   │   ├── Reviews/
+│   │   │   │   ├── ReviewCard.jsx
+│   │   │   │   ├── ReviewForm.jsx
+│   │   │   │   ├── ReviewList.jsx
+│   │   │   │   └── ReviewSection.jsx
+│   │   │   │
+│   │   │   └── ProtectedRoute.jsx
 │   │   │
 │   │   ├── context/
 │   │   │   └── AuthContext.jsx
 │   │   │
+│   │   ├── data/
+│   │   │   └── categories.js
+│   │   │
+│   │   ├── hooks/
+│   │   │   └── useAuth.js
+│   │   │
+│   │   ├── layouts/
+│   │   │   └── MainLayout.jsx
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── BecomeHostPage.jsx
+│   │   │   ├── EditListingPage.jsx
+│   │   │   ├── HomePage.jsx
+│   │   │   ├── HostDashboardPage.jsx
+│   │   │   ├── ListingDetailsPage.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── MyBookingPage.jsx
+│   │   │   ├── MyListingsPage.jsx
+│   │   │   ├── NewListingPage.jsx
+│   │   │   ├── ProfilePage.jsx
+│   │   │   ├── SearchResultPage.jsx
+│   │   │   └── SignupPage.jsx
+│   │   │
 │   │   ├── routes/
 │   │   │   └── AppRoutes.jsx
 │   │   │
+│   │   ├── services/
+│   │   │   ├── api.js
+│   │   │   ├── authService.js
+│   │   │   └── listingService.js
+│   │   │
+│   │   ├── App.css
 │   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
+│   │   ├── index.css
+│   │   └── main.jsx
 │   │
+│   ├── .env
+│   ├── .gitignore
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
 │   ├── package.json
 │   └── vite.config.js
 │
-├── backend/
-│   │
-│   ├── config/
-│   │   └── db.js
-│   │
-│   ├── controllers/
-│   │
-│   ├── middleware/
-│   │
-│   ├── models/
-│   │
-│   ├── routes/
-│   │
-│   ├── utils/
-│   │
-│   ├── server.js
-│   ├── package.json
-│   └── .env
-│
+├── .gitignore
 └── README.md
 ```
 
@@ -1302,3 +1414,4 @@ Version 2 Features
 ```
 
 ---
+
