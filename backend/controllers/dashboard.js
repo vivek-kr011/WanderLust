@@ -1,12 +1,10 @@
 const Listing = require("../models/listing");
 const Booking = require("../models/booking");
 
-
 module.exports.getDashboard = async (req, res, next) => {
 
     /* Current Logged-in Host */
     const hostId = req.user.id;
-    console.log("Host Id : ", hostId);
 
     /* Total Listings */
     const totalListings = await Listing.countDocuments({
@@ -19,18 +17,16 @@ module.exports.getDashboard = async (req, res, next) => {
         owner: hostId,
     });
 
-    console.log("Listings : ", listings);
-
     /* Sirf Listing IDs */
     const listingIds = listings.map((listing) => listing._id);
-    console.log("Listing IDs : ", listingIds);
-
-
+    
     const bookings = await Booking.find({
         listing: {
             $in: listingIds,
         },
-    });
+    })
+        .populate("listing", "title image location country")
+        .populate("user", "name email");
 
     console.log("Matched Bookings:", bookings);
 
@@ -40,7 +36,6 @@ module.exports.getDashboard = async (req, res, next) => {
             $in: listingIds,
         },
     });
-    // console.log("Total Bookings : ", totalBookings);
 
     /* Active Bookings (Pending + Confirmed) */
     const activeBookings = await Booking.countDocuments({
@@ -69,6 +64,7 @@ module.exports.getDashboard = async (req, res, next) => {
             activeBookings,
             cancelledBookings,
             listings,
+            bookings,
         },
     });
 };

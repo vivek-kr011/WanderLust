@@ -45,4 +45,24 @@ router.patch(
   wrapAsync(bookingsController.cancelBooking),
 );
 
+/* Host confirm route */ 
+router.patch(
+  "/:bookingId/confirm",
+  (req, res, next) => {
+    console.log("CONFIRM ROUTE HIT");
+    console.log("Params:", req.params);
+    next();
+  },
+  verifyToken,
+  wrapAsync(bookingsController.confirmHostBooking)
+);
+
+
+/* Host Cancel Booking */
+router.patch(
+  "/:bookingId/host-cancel",
+  verifyToken,
+  wrapAsync(bookingsController.cancelHostBooking)
+)
+
 module.exports = router;
