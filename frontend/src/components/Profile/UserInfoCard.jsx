@@ -1,7 +1,7 @@
-import { FaUser, FaEnvelope, FaIdBadge } from "react-icons/fa";
+import { FaUser, FaEnvelope } from "react-icons/fa";
 
 export default function UserInfoCard({ user }) {
-  const { username, email, _id } = user;
+  const { username, email } = user;
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-8 mt-8">
@@ -36,16 +36,17 @@ export default function UserInfoCard({ user }) {
         </div>
 
         {/* User ID */}
-        <div className="flex items-center gap-4">
+        {/* FaIdBadge => this badge use */}
+        {/* <div className="flex items-center gap-4">
           <FaIdBadge className="text-red-500 text-xl" />
 
           <div>
-            <p className="text-sm text-gray-500">User ID</p>
+            <p className="text-sm text-gray-500">User Name</p>
             <p className="font-semibold text-gray-800 break-all">
-              {_id}
+              {username}
             </p>
           </div>
-        </div>
+        </div> */}
 
       </div>
     </div>

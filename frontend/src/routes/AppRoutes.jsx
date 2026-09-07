@@ -16,6 +16,7 @@ import EditListingPage from "../pages/EditListingPage";
 import MyBookingsPage from "../pages/MyBookingPage";
 import ProfilePage from "../pages/ProfilePage";
 import MyListingsPage from "../pages/MyListingsPage";
+import HostDashboardPage from "../pages/HostDashboardPage";
 
 export default function AppRoutes() {
   return (
@@ -83,6 +84,9 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/host-dashboard" element={<HostDashboardPage />} />
+        
       </Route>
       
     </Routes>

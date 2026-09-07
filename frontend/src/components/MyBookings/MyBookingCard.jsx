@@ -19,6 +19,11 @@ export default function MyBookingCard({ booking, onCancel }) {
 
   const [isCancelling, setIsCancelling] = useState(false);
 
+  // prevent if listing is not available
+  if(!listing) {
+    return null;
+  }
+
   const formattedCheckIn = new Date(checkIn).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
