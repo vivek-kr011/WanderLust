@@ -11,7 +11,7 @@ WanderLust exposes a REST-style HTTP API for accommodation listings, users, revi
 | Transport | HTTP/HTTPS |
 | Data format | JSON, except listing image uploads |
 | Authentication | JWT bearer token |
-| Total implemented endpoints | 20 |
+| Total implemented endpoints | 20, including one temporary diagnostic route |
 
 The endpoint paths below are the paths currently mounted by the Express application. Replace path parameters such as `:id` and `:bookingId` with real MongoDB ObjectId values.
 
@@ -30,7 +30,6 @@ Content-Type: application/json
   "password": "your-password"
 }
 ```
-
 Use the returned token on protected endpoints:
 
 ```http
@@ -67,7 +66,7 @@ Protected endpoints require a valid JWT in the `Authorization` header:
 Authorization: Bearer <jwt-token>
 ```
 
-Tokens are issued by `POST /signup` and `POST /login` and expire after three days. Missing, malformed, invalid, or expired tokens return `401 Unauthorized`.
+Tokens are issued by `POST /signup` and `POST /login` and expire after three days. Missing, malformed, invalid, or expired tokens return `401 Unauthorized`. `GET /logout` ends the Passport session but does not revoke an already-issued JWT.
 
 ### Authorization roles
 
@@ -269,7 +268,7 @@ Creates a listing. Requires a bearer token and `multipart/form-data` because an 
 | `listing[price]` | number | Yes, minimum `0` |
 | `listing[image]` | file | Optional |
 
-The server geocodes `listing[location]`, assigns the authenticated user as owner, and stores the uploaded image in cloud storage.
+The server geocodes `listing[location]`, assigns the authenticated user as owner, and stores the uploaded image in cloud storage. Although the upload middleware is configured to accept no file, the current controller reads the uploaded file unconditionally; clients should send `listing[image]` until that implementation is changed.
 
 **Success: `201 Created`**
 
@@ -366,7 +365,7 @@ Adds a review to a listing. Requires a bearer token.
 
 ### DELETE `/listings/:id/reviews/:reviewId`
 
-Deletes a review. The authenticated user must be the review author.
+Deletes a review. The authenticated user must be the review author. The current middleware checks review authorship but does not independently verify that `reviewId` belongs to the listing in the URL.
 
 **Success: `200 OK`**
 
@@ -436,7 +435,7 @@ Validation rules:
 }
 ```
 
-The server emits a Socket.IO `newBooking` event after creation.
+The server emits a Socket.IO `newBooking` event to every connected socket after creation. The event payload is a booking populated with its `listing` and `user`.
 
 ### PATCH `/listings/:id/bookings/:bookingId/cancel`
 
@@ -454,7 +453,7 @@ Cancels a booking as the booking owner. A cancelled booking cannot be cancelled 
 
 ### PATCH `/listings/:id/bookings/:bookingId/confirm`
 
-Confirms a `pending` booking as the owner of the listing. The server emits a Socket.IO `bookingConfirmed` event after confirmation.
+Confirms a `pending` booking as the owner of the booking's listing. The server emits a targeted Socket.IO `bookingConfirmed` event to the booking user's `user:<userId>` room after confirmation.
 
 **Success: `200 OK`**
 
@@ -468,7 +467,7 @@ Confirms a `pending` booking as the owner of the listing. The server emits a Soc
 
 ### PATCH `/listings/:id/bookings/:bookingId/host-cancel`
 
-Cancels a booking as the owner of the listing.
+Cancels a booking as the owner of the listing. The current implementation emits no Socket.IO event, so connected guests do not receive a realtime host-cancellation update.
 
 **Success: `200 OK`**
 
@@ -511,7 +510,51 @@ Requires a bearer token. Returns statistics and listings/bookings associated wit
 }
 ```
 
-## 10. Common Errors
+## 10. Socket.IO Infrastructure
+
+Socket.IO is initialized on the same HTTP server as the REST API at `http://localhost:8080`. The frontend client connects automatically to that origin with credentials enabled. CORS permits the Vite origin `http://localhost:5173`.
+
+### Client-to-server events
+
+| Event | Payload | Server behavior |
+| --- | --- | --- |
+| `joinUserRoom` | `userId` | Joins `user:<userId>` |
+| `joinHostRoom` | `hostId` | Joins `host:<hostId>` |
+
+### Server-to-client events
+
+| Event | Destination | Payload | Current consumer |
+| --- | --- | --- | --- |
+| `newBooking` | Broadcast to all connected sockets | Populated booking (`listing`, `user`) | Host dashboard prepends it to its local booking list |
+| `bookingConfirmed` | `user:<userId>` only | Populated confirmed booking | My Bookings updates the matching booking without refresh |
+
+```mermaid
+sequenceDiagram
+  participant U as Guest browser
+  participant H as Host browser
+  participant S as Socket.IO server
+  participant B as Booking controller
+  participant DB as MongoDB
+
+  U->>S: connect()
+  U->>S: joinUserRoom(userId)
+  H->>S: connect()
+  U->>B: POST /listings/:id/bookings/
+  B->>DB: save pending booking
+  B->>S: emit newBooking (broadcast)
+  S-->>H: newBooking
+  H->>B: PATCH .../:bookingId/confirm
+  B->>DB: set status = confirmed
+  B->>S: emit bookingConfirmed to user:userId
+  S-->>U: bookingConfirmed
+  U->>U: update booking state without refresh
+```
+
+### Current realtime boundary
+
+`joinHostRoom` is implemented by the server but is not currently emitted by the frontend. Consequently, `newBooking` is global rather than host-targeted. Host cancellation currently changes MongoDB state through REST only; there is no `bookingCancelled` event or guest listener. These are the remaining Socket.IO work items represented in the project status.
+
+## 11. Common Errors
 
 Application errors use this structure:
 
@@ -531,7 +574,7 @@ Application errors use this structure:
 | `404` | Not Found | Listing, booking, review, or user does not exist |
 | `500` | Internal Server Error | Unexpected server or dependency failure |
 
-## 11. Resource Models
+## 12. Resource Models
 
 ### Listing
 
@@ -551,10 +594,33 @@ Booking statuses are `pending`, `confirmed`, `cancelled`, and `completed`.
 
 The API exposes `id` or `_id`, `username`, and `email` in user-facing responses. Password hash and salt are not returned by the profile endpoint.
 
-## 12. Integration Notes
+## 13. Integration Notes
 
 - The backend listens on port `8080`.
 - The configured CORS origin is `http://localhost:5173`.
 - Listing create/update require the Mapbox token and cloud image storage configuration to be available.
-- Socket.IO events currently emitted by booking workflows are `newBooking` and `bookingConfirmed`.
+- Socket.IO events currently emitted by booking workflows are `newBooking` and `bookingConfirmed`; host cancellation has no realtime event yet.
 - The API is currently unversioned. A production release should introduce a prefix such as `/api/v1` and publish a machine-readable OpenAPI document alongside this guide.
+
+## 14. System Architecture
+
+```mermaid
+flowchart LR
+  Browser[React + Vite browser]
+  API[Express REST API<br/>HTTP :8080]
+  Socket[Socket.IO server<br/>same HTTP server]
+  Auth[JWT middleware<br/>Passport session]
+  Controllers[Route controllers]
+  Mongo[(MongoDB<br/>Users, Listings, Reviews, Bookings)]
+  Cloud[Cloudinary<br/>listing images]
+  Map[Mapbox geocoding]
+
+  Browser -->|Axios JSON / multipart| API
+  Browser <-->|Socket.IO events| Socket
+  API --> Auth
+  Auth --> Controllers
+  Controllers --> Mongo
+  Controllers --> Cloud
+  Controllers --> Map
+  Controllers -->|booking events| Socket
+```

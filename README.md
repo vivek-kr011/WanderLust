@@ -17,6 +17,7 @@ The project focuses on building a real-world property marketplace with authentic
 * [System Flow](#-system-flow)
 * [Frontend Architecture](#-frontend-architecture)
 * [Backend Architecture](#-backend-architecture)
+* [Socket.IO Infrastructure](#-socketio-infrastructure)
 * [Authentication & Authorization](#-authentication--authorization)
 * [Listing & Review Architecture](#-listing--review-architecture)
 * [Project Structure](#-project-structure)
@@ -284,6 +285,7 @@ Image Preview is part of the Version 1 development roadmap.
 | **Tailwind CSS**      | UI styling                      |
 | **React Icons**       | UI icons                        |
 | **Context API**       | Global authentication state     |
+| **Socket.IO Client**  | Realtime booking updates        |
 | **JavaScript (ES6+)** | Application logic               |
 
 ---
@@ -393,6 +395,30 @@ React State
    │
    ▼
 UI Update
+```
+
+## Whole-Project Architecture
+
+```mermaid
+flowchart TB
+    User[Guest or host]
+    Frontend[React 19 + Vite<br/>React Router, Context API, Axios]
+    HTTP[Express REST API<br/>http://localhost:8080]
+    Realtime[Socket.IO<br/>same HTTP server]
+    Middleware[JWT verification<br/>Passport session, Joi validation]
+    Controllers[Controllers and route handlers]
+    Mongo[(MongoDB via Mongoose<br/>User, Listing, Review, Booking)]
+    Cloud[Cloudinary<br/>listing image storage]
+    Mapbox[Mapbox geocoding]
+
+    User --> Frontend
+    Frontend -->|JSON and multipart requests| HTTP
+    Frontend <-->|booking events| Realtime
+    HTTP --> Middleware --> Controllers
+    Controllers --> Mongo
+    Controllers --> Cloud
+    Controllers --> Mapbox
+    Controllers -->|newBooking / bookingConfirmed| Realtime
 ```
 
 ---
@@ -505,6 +531,48 @@ ListingDetailsPage
 ```
 
 ---
+
+# 🔌 Socket.IO Infrastructure
+
+The backend creates Socket.IO on the same Node HTTP server as Express. The frontend connects automatically to `http://localhost:8080` through `frontend/src/services/socket.js`.
+
+## Current event contract
+
+| Direction | Event | Delivery | Current behavior |
+| --- | --- | --- | --- |
+| Client -> server | `joinUserRoom(userId)` | User room | Joins `user:<userId>` for targeted confirmation updates |
+| Client -> server | `joinHostRoom(hostId)` | Host room | Supported by the server, but not currently emitted by the frontend |
+| Server -> client | `newBooking` | Global broadcast | Host dashboard prepends the populated booking to local state |
+| Server -> client | `bookingConfirmed` | `user:<userId>` | My Bookings updates the matching booking without a page refresh |
+
+```mermaid
+sequenceDiagram
+    participant Guest as Guest browser
+    participant Host as Host dashboard
+    participant API as Express booking controller
+    participant Socket as Socket.IO server
+    participant DB as MongoDB
+
+    Guest->>Socket: connect()
+    Guest->>Socket: joinUserRoom(userId)
+    Guest->>API: POST /listings/:id/bookings/
+    API->>DB: save pending booking
+    API->>Socket: emit newBooking to all sockets
+    Socket-->>Host: newBooking
+    Host->>API: PATCH .../:bookingId/confirm
+    API->>DB: update status to confirmed
+    API->>Socket: emit bookingConfirmed to user:userId
+    Socket-->>Guest: bookingConfirmed
+    Guest->>Guest: update local booking state
+```
+
+## Realtime status
+
+* Host-to-user confirmation is implemented and verified without a browser refresh.
+* Host-to-user cancellation is not complete: the backend changes the booking through REST but emits no cancellation event, and the guest page has no cancellation listener.
+* Host room targeting is not complete: `newBooking` is currently broadcast globally because the frontend does not call `joinHostRoom`.
+
+The detailed HTTP and event contract is maintained in [API_DOCUMENTATION.md](API_DOCUMENTATION.md).
 
 # 🔐 Authentication & Authorization
 
@@ -947,11 +1015,10 @@ Conceptually:
 
 ```text
 User
- ├── name
+ ├── username
  ├── email
- ├── password
- ├── role
- └── ...
+ ├── password hash and salt
+ └── Passport-local authentication fields
 ```
 
 ### Listing
@@ -1141,13 +1208,16 @@ Create a `.env` file inside the backend directory.
 Example:
 
 ```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
+ATLASDB_URL=your_mongodb_connection_string
+SECRET=your_session_secret
 JWT_SECRET=your_jwt_secret
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+MAP_TOKEN=your_mapbox_token
+CLOUD_NAME=your_cloudinary_cloud_name
+CLOUD_API_KEY=your_cloudinary_api_key
+CLOUD_API_SECRET=your_cloudinary_api_secret
 ```
+
+The backend currently listens on hard-coded port `8080`; `PORT` is not read by `backend/app.js`. The frontend and Socket.IO client expect `http://localhost:8080` and `http://localhost:5173` during local development.
 
 Do not commit `.env` to GitHub.
 
@@ -1169,10 +1239,10 @@ cd backend
 npm run dev
 ```
 
-The backend runs on the configured port, for example:
+The backend runs on:
 
 ```text
-http://localhost:5000
+http://localhost:8080
 ```
 
 ---
@@ -1397,21 +1467,16 @@ If a formal open-source license is added later, this section should be updated a
 
 The project is transitioning from its original EJS-based frontend architecture toward a modern React + Vite frontend while continuing to build upon the existing backend functionality.
 
-The development priority is currently focused on:
+The current implementation status is:
 
 ```text
-Host Dashboard
-      ↓
-Booking UI Improvements
-      ↓
-Image Preview
-      ↓
-Toast Polish
-      ↓
-Deployment
-      ↓
-Version 2 Features
+Socket.IO confirmation                 DONE
+Host -> User confirmation              DONE
+Realtime confirmation without refresh  VERIFIED
+Host -> User cancellation               PENDING
 ```
+
+The remaining cancellation work requires a backend cancellation event and a guest-side listener/state update. Host-room targeting also remains pending because `newBooking` is currently broadcast globally.
 
 ---
 
