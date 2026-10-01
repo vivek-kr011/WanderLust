@@ -5,6 +5,11 @@ if (process.env.NODE_ENV !== "production") {
 const express = require("express");
 const app = express();
 
+/* Use for Socket.IO */
+const http = require("http");
+// const { Server } = require("socket.io");
+const { initializeSocket } = require("./socket");
+
 const mongoose = require("mongoose");
 const path = require("path");
 const methodOverride = require("method-override");
@@ -156,7 +161,10 @@ app.use((err, req, res, next) => {
 });
 
 /* ----------------- Server ---------------*/
+const server = http.createServer(app);
 
-app.listen(8080, () => {
+initializeSocket(server);
+
+server.listen(8080, () => {
   console.log("🚀 Server running on http://localhost:8080");
 });
