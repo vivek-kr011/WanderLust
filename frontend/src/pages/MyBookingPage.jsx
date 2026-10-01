@@ -1,15 +1,21 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import api from "../services/api";
+
+import socket from "../services/socket";
 
 import MyBookingCard from "../components/MyBookings/MyBookingCard";
 
 import { FaRegCalendarAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
+import AuthContext from "../context/AuthContext";
+
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const { user } = useContext(AuthContext);
 
   const fetchMyBookings = async () => {
     try {
@@ -27,7 +33,6 @@ export default function MyBookingsPage() {
       console.log(res.data);
 
       setBookings(res.data.bookings);
-      
     } catch (err) {
       console.log(err);
 
@@ -38,8 +43,103 @@ export default function MyBookingsPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMyBookings();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) {
+      console.log("User ID not available");
+      return;
+    }
+
+    const userId = user.id;
+
+    const joinUserRoom = () => {
+      console.log("Joining user room:", userId);
+
+      socket.emit("joinUserRoom", userId);
+    };
+
+    const handleBookingConfirmed = (confirmedBooking) => {
+
+      console.log("EVENT RECEIVED");
+      console.log("Confirmed booking ID:", confirmedBooking._id);
+      console.log("Confirmed booking status:", confirmedBooking.status);
+
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking._id === confirmedBooking._id
+            ? {
+                ...booking,
+                status: confirmedBooking.status,
+              }
+            : booking,
+        ),
+      );
+    };
+
+    const handleBookingCancelled = (cancelledBooking) => {
+
+      console.log("CANCEL EVENT RECEIVED");
+      console.log("Cancelled booking ID:", cancelledBooking._id);
+      console.log("Cancelled booking status:", cancelledBooking.status);
+
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking._id === cancelledBooking._id
+            ? {
+                ...booking,
+                status: cancelledBooking.status,
+
+              }
+            : booking,
+        ),
+      )
+    }
+
+    // Socket already connected hai
+    if (socket.connected) {
+      joinUserRoom();
+    }
+
+    // Socket baad mein connect ho
+    socket.on("connect", joinUserRoom);
+
+    // Booking confirmation event
+    socket.on("bookingConfirmed", handleBookingConfirmed);
+
+    socket.on("bookingCancelled", handleBookingCancelled);
+
+    console.log("Listening for bookingConfirmed and bookingCancelled");
+
+    return () => {
+      socket.off("connect", joinUserRoom);
+      socket.off("bookingConfirmed", handleBookingConfirmed);
+      socket.off("bookingCancelled", handleBookingCancelled);
+    };
+  }, [user]);
+
+  /* ====== CONEECTION TEST =============== */
+  useEffect(() => {
+    const handleConnect = () => {
+      console.log("MyBookings Socket Connected:", socket.id);
+    };
+
+    const handleDisconnect = () => {
+      console.log("MyBookings Socket Disconnected");
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+    };
+  }, []);
+
+  /*======================================== */
 
   if (loading) {
     return <h2>Loading...</h2>;
