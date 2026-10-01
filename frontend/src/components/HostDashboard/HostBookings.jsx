@@ -1,6 +1,6 @@
 import HostBookingCard from "../Bookings/HostBookingCard";
 
-export default function HostBookings({ bookings, onConfirm }) {
+export default function HostBookings({ bookings, onConfirm, onCancel}) {
   return (
     <section className="mt-12">
 
@@ -25,6 +25,7 @@ export default function HostBookings({ bookings, onConfirm }) {
               key={booking._id}
               booking={booking}
               onConfirm={onConfirm}
+              onCancel={onCancel}
             />
 
           ))}
