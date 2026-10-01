@@ -4,9 +4,10 @@ import { useState } from "react";
 import api from "../../services/api";
 import { toast } from "react-toastify";
 
-export default function HostBookingCard({ booking, onConfirm }) {
+export default function HostBookingCard({ booking, onConfirm, onCancel }) {
 
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const handleConfirm = async () => {
     try {
@@ -40,6 +41,41 @@ export default function HostBookingCard({ booking, onConfirm }) {
 
     } finally {
       setIsConfirming(false);
+    }
+  }
+
+  /* CANCEL BOOKING */
+  const handleCancel = async () => {
+
+    try {
+      setIsCancelling(true);
+
+      const token = localStorage.getItem("token");
+
+      const res = await api.patch(
+        `/listings/${booking.listing._id}/bookings/${booking._id}/host-cancel`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+        }
+      );
+
+      console.log(res.data);
+
+      toast.success("Booking canceled successfully.");
+
+      // inform parent
+      onCancel(booking._id); // inform to thre parent (HostBookings.jsx)
+
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to cancel booking."
+      )
+
+    } finally {
+      setIsCancelling(false);
     }
   }
 
@@ -135,9 +171,10 @@ export default function HostBookingCard({ booking, onConfirm }) {
 
         </div>
 
-        {/* Status */}
-        <div className="mt-5 border-t pt-5">
+        {/* Status + Actions */}
+        <div className="mt-5 border-t pt-5 flex items-center justify-between gap-3">
 
+          {/* Status */}
           <span
             className={`px-4 py-2 rounded-full text-sm font-semibold ${
               booking.status === "cancelled"
@@ -150,16 +187,32 @@ export default function HostBookingCard({ booking, onConfirm }) {
             {booking.status.toUpperCase()}
           </span>
 
-          {
-            booking.status === "pending" && (
+          {/* Actions */}
+          <div className="flex gap-2">
+
+            {/* Pending → Confirm */}
+            {booking.status === "pending" && (
               <button
                 onClick={handleConfirm}
                 disabled={isConfirming}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
               >
                 {isConfirming ? "Confirming..." : "Confirm Booking"}
               </button>
-            )
-          }
+            )}
+
+            {/* Confirmed → Cancel */}
+            {booking.status === "confirmed" && (
+              <button
+                onClick={handleCancel}
+                disabled={isCancelling}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+              >
+                {isCancelling ? "Cancelling..." : "Cancel Booking"}
+              </button>
+            )}
+
+          </div>
 
         </div>
 
