@@ -37,6 +37,9 @@ export default function LoginPage() {
 
       const res = await api.post("/login", formData);
 
+      console.log("LOGIN RESPONSE:", res.data);
+      console.log("LOGIN USER:", res.data.user);
+
       // Save token using AuthContext
       // login(res.data.token);
       login(res.data.user, res.data.token);
