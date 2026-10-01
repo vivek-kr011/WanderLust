@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 
+import socket from "../services/socket";
+
 import DashboardStats from "../components/HostDashboard/DashboardStats";
 import MyListings from "../components/HostDashboard/MyListings";
 import HostBookings from "../components/HostDashboard/HostBookings";
@@ -36,6 +38,39 @@ export default function HostDashboardPage() {
     fetchDashboard();
   }, []);
 
+  // =========== SOCKET.IO ================================
+
+  useEffect(() => {
+    function handleNewBooking(newBooking) {
+      console.log("New booking received:", newBooking);
+
+      setDashboard((prev) => {
+        if (!prev) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          bookings: [newBooking, ...prev.bookings],
+        };
+      });
+    }
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("newBooking", handleNewBooking);
+
+    return () => {
+      socket.off("connect");
+      socket.off("newBooking", handleNewBooking);
+    };
+    
+  }, []);
+
+  // =============================================
+
   if (loading) {
     return <p>Loading Dashboard...</p>;
   }
@@ -63,18 +98,33 @@ export default function HostDashboardPage() {
         }}
       />
 
-      <HostBookings 
-        bookings={dashboard.bookings} 
+      <HostBookings
+        bookings={dashboard.bookings}
         onConfirm={(confirmID) => {
           setDashboard((prev) => ({
             ...prev,
-            bookings: prev.bookings.map((booking) => 
-              booking._id === confirmID ? {...booking, status: "confirmed"} : booking
+            bookings: prev.bookings.map((booking) =>
+              booking._id === confirmID
+                ? { ...booking, status: "confirmed" }
+                : booking,
+            ),
+          }));
+        }}
+
+        onCancel={(cancelID) => {
+          setDashboard((prev) => ({
+            ...prev,
+            bookings: prev.bookings.map((booking) =>
+              booking._id === cancelID
+                ? {
+                    ...booking,
+                    status: "cancelled",
+                  }
+                : booking
             ),
           }));
         }}
       />
-
     </div>
   );
 }
