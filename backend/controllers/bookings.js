@@ -5,7 +5,6 @@ const ExpressError = require("../utils/ExpressError");
 const { getIO } = require("../socket");
 
 /*========= CREATE BOOKING ==========*/
-
 module.exports.createBooking = async (req, res) => {
   const { id } = req.params;
 
@@ -80,9 +79,10 @@ module.exports.getMyBookings = async (req, res) => {
   });
 };
 
-/* CANCEL BOOKING */
+/* -------------------- CANCEL BOOKING ------------------------- */
 module.exports.cancelBooking = async (req, res) => {
   const { bookingId } = req.params;
+
   const booking = await Booking.findById(bookingId);
 
   if (!booking) {
@@ -90,7 +90,6 @@ module.exports.cancelBooking = async (req, res) => {
   }
 
   // booking.user == req.user.id;
-
   if (booking.user.toString() !== req.user.id) {
     throw new ExpressError(
       403,
@@ -102,19 +101,41 @@ module.exports.cancelBooking = async (req, res) => {
     throw new ExpressError(400, "Booking is already cancelled.");
   }
 
+  const listing = await Listing.findById(booking.listing);
+
+  if (!listing) {
+    throw new ExpressError(400, "Listing not found.");
+  }
+
+  const hostId = listing.owner.toString();
+
   booking.status = "cancelled";
 
   await booking.save();
 
+  // Populate updated booking
+  const populatedBooking = await Booking.findById(booking._id)
+    .populate("listing")
+    .populate("user");
+
+  /* -----------  Send realtime update to host ------------ */
+  const io = getIO();
+
+  io.to(`host:${hostId}`).emit(
+    "bookingCancelledByUser", 
+    populatedBooking
+  );
+
+  /* --------------------------------------------------------- */
+
   res.status(200).json({
     success: true,
     message: "Booking cancelled successfully",
-    booking,
+    booking: populatedBooking,
   });
 };
 
-/* ================= confirmHostBooking ======================== */
-
+/* -------------------- confirmHostBooking -------------------- */
 module.exports.confirmHostBooking = async (req, res) => {
   const { bookingId } = req.params;
   const booking = await Booking.findById(bookingId);
@@ -170,7 +191,7 @@ module.exports.confirmHostBooking = async (req, res) => {
   });
 };
 
-/* ================= cancelHostBooking =======================*/
+/* -------------------- cancelHostBooking -------------------- */
 module.exports.cancelHostBooking = async (req, res) => {
   const { bookingId } = req.params;
 
@@ -186,17 +207,17 @@ module.exports.cancelHostBooking = async (req, res) => {
     throw new ExpressError(404, "Listing is not found.");
   }
 
-  console.log("========== CANCEL DEBUG ==========");
-  console.log("Booking ID:", booking._id.toString());
-  console.log("Booking user ID:", booking.user.toString());
-  console.log("Listing ID:", listing._id.toString());
-  console.log("Listing owner ID:", listing.owner.toString());
-  console.log("Logged-in user ID:", req.user.id);
-  console.log(
-    "Owner matches:",
-    listing.owner.toString() === req.user.id.toString(),
-  );
-  console.log("=================================");
+  // console.log("========== CANCEL DEBUG ==========");
+  // console.log("Booking ID:", booking._id.toString());
+  // console.log("Booking user ID:", booking.user.toString());
+  // console.log("Listing ID:", listing._id.toString());
+  // console.log("Listing owner ID:", listing.owner.toString());
+  // console.log("Logged-in user ID:", req.user.id);
+  // console.log(
+  //   "Owner matches:",
+  //   listing.owner.toString() === req.user.id.toString(),
+  // );
+  // console.log("=================================");
 
   if (listing.owner.toString() !== req.user.id) {
     throw new ExpressError(
