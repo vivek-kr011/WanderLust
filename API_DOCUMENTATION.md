@@ -451,6 +451,8 @@ Cancels a booking as the booking owner. A cancelled booking cannot be cancelled 
 }
 ```
 
+After the database update succeeds, the backend populates the booking and emits `bookingCancelledByUser` to the listing owner's `host:<hostId>` room. The host dashboard uses this event to update the booking status without a page refresh.
+
 ### PATCH `/listings/:id/bookings/:bookingId/confirm`
 
 Confirms a `pending` booking as the owner of the booking's listing. The server emits a targeted Socket.IO `bookingConfirmed` event to the booking user's `user:<userId>` room after confirmation.
@@ -467,7 +469,7 @@ Confirms a `pending` booking as the owner of the booking's listing. The server e
 
 ### PATCH `/listings/:id/bookings/:bookingId/host-cancel`
 
-Cancels a booking as the owner of the listing. The current implementation emits no Socket.IO event, so connected guests do not receive a realtime host-cancellation update.
+Cancels a booking as the owner of the listing. This endpoint currently updates the booking through REST and does not emit a Socket.IO event to the guest.
 
 **Success: `200 OK`**
 
@@ -527,32 +529,40 @@ Socket.IO is initialized on the same HTTP server as the REST API at `http://loca
 | --- | --- | --- | --- |
 | `newBooking` | Broadcast to all connected sockets | Populated booking (`listing`, `user`) | Host dashboard prepends it to its local booking list |
 | `bookingConfirmed` | `user:<userId>` only | Populated confirmed booking | My Bookings updates the matching booking without refresh |
+| `bookingCancelledByUser` | `host:<hostId>` only | Populated cancelled booking (`listing`, `user`) | Host dashboard updates the matching booking status |
 
 ```mermaid
 sequenceDiagram
-  participant U as Guest browser
-  participant H as Host browser
+  participant G as Guest browser
+  participant H as Host dashboard
+  participant API as Express booking controller
   participant S as Socket.IO server
-  participant B as Booking controller
   participant DB as MongoDB
 
-  U->>S: connect()
-  U->>S: joinUserRoom(userId)
+  G->>S: connect()
+  G->>S: joinUserRoom(userId)
   H->>S: connect()
-  U->>B: POST /listings/:id/bookings/
-  B->>DB: save pending booking
-  B->>S: emit newBooking (broadcast)
+  H->>S: joinHostRoom(hostId)
+
+  G->>API: POST /listings/:id/bookings/
+  API->>DB: Save pending booking
+  API->>S: emit newBooking
   S-->>H: newBooking
-  H->>B: PATCH .../:bookingId/confirm
-  B->>DB: set status = confirmed
-  B->>S: emit bookingConfirmed to user:userId
-  S-->>U: bookingConfirmed
-  U->>U: update booking state without refresh
+
+  H->>API: PATCH .../:bookingId/confirm
+  API->>DB: Set status = confirmed
+  API->>S: emit bookingConfirmed to user:userId
+  S-->>G: bookingConfirmed
+
+  G->>API: PATCH .../:bookingId/cancel
+  API->>DB: Set status = cancelled
+  API->>S: emit bookingCancelledByUser to host:hostId
+  S-->>H: bookingCancelledByUser
 ```
 
 ### Current realtime boundary
 
-`joinHostRoom` is implemented by the server but is not currently emitted by the frontend. Consequently, `newBooking` is global rather than host-targeted. Host cancellation currently changes MongoDB state through REST only; there is no `bookingCancelled` event or guest listener. These are the remaining Socket.IO work items represented in the project status.
+`newBooking` is currently emitted as a global event after booking creation. Confirmation is targeted to the guest's `user:<userId>` room, while guest cancellation is targeted to the host's `host:<hostId>` room through `bookingCancelledByUser`. Host cancellation currently changes MongoDB state through REST only and does not emit a guest-facing realtime event.
 
 ## 11. Common Errors
 
@@ -599,7 +609,7 @@ The API exposes `id` or `_id`, `username`, and `email` in user-facing responses.
 - The backend listens on port `8080`.
 - The configured CORS origin is `http://localhost:5173`.
 - Listing create/update require the Mapbox token and cloud image storage configuration to be available.
-- Socket.IO events currently emitted by booking workflows are `newBooking` and `bookingConfirmed`; host cancellation has no realtime event yet.
+- Socket.IO events currently emitted by booking workflows are `newBooking`, `bookingConfirmed`, and `bookingCancelledByUser`.
 - The API is currently unversioned. A production release should introduce a prefix such as `/api/v1` and publish a machine-readable OpenAPI document alongside this guide.
 
 ## 14. System Architecture
@@ -623,4 +633,23 @@ flowchart LR
   Controllers --> Cloud
   Controllers --> Map
   Controllers -->|booking events| Socket
+```
+
+### Booking state synchronization
+
+```mermaid
+flowchart LR
+  Create[Guest creates booking] --> Pending[(MongoDB: pending)]
+  Pending --> New[newBooking<br/>broadcast]
+  New --> Dashboard[Host dashboard]
+
+  Dashboard --> Confirm[Host confirms booking]
+  Confirm --> Confirmed[(MongoDB: confirmed)]
+  Confirmed --> ConfirmEvent[bookingConfirmed<br/>user room]
+  ConfirmEvent --> Guest[Guest booking page]
+
+  Guest --> Cancel[Guest cancels booking]
+  Cancel --> Cancelled[(MongoDB: cancelled)]
+  Cancelled --> CancelEvent[bookingCancelledByUser<br/>host room]
+  CancelEvent --> Host[Host dashboard]
 ```
