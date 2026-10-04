@@ -24,11 +24,12 @@ export default function HostDashboardPage() {
             Authorization: `Bearer ${token}`,
           },
         });
-        // console.log(res.data);
+
+        // console.log(res.data.dashboard);
 
         setDashboard(res.data.dashboard);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
 
         setError(error.response?.data?.message || "Failed to fetch dashboard.");
       } finally {
@@ -42,7 +43,7 @@ export default function HostDashboardPage() {
 
   useEffect(() => {
     function handleNewBooking(newBooking) {
-      console.log("New booking received:", newBooking);
+      // console.log("New booking received:", newBooking);
 
       setDashboard((prev) => {
         if (!prev) {
@@ -56,18 +57,67 @@ export default function HostDashboardPage() {
       });
     }
 
+    function handleBookingCancelledByUser(cancelledBooking) {
+      // console.log("BOOKING CANCELLED BY USER EVENT RECEIVED");
+      // console.log("Cancelled Booking ID:", cancelledBooking._id);
+      // console.log("Cancelled Booking Status:", cancelledBooking.status);
+
+      setDashboard((prev) => {
+        if (!prev) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          bookings: prev.bookings.map((booking) =>
+            booking._id === cancelledBooking._id
+              ? {
+                  ...booking,
+                  status: cancelledBooking.status,
+                }
+              : booking,
+          ),
+        };
+      });
+    }
+
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
     });
 
+    // TEMPORARY DEBUG
+    // socket.onAny((event, ...args) => {
+    //   console.log("SOCKET EVENT RECEIVED:", event, args);
+    // });
+
     socket.on("newBooking", handleNewBooking);
+
+    // User cancellation to Host
+    socket.on("bookingCancelledByUser", handleBookingCancelledByUser);
 
     return () => {
       socket.off("connect");
       socket.off("newBooking", handleNewBooking);
+      socket.off("bookingCancelledByUser", handleBookingCancelledByUser);
     };
-    
   }, []);
+
+  useEffect(() => {
+    if (!dashboard) return;
+
+    const hostId = dashboard?.listings?.[0]?.owner;
+
+    if (!hostId) {
+      // console.log("Host Id not found.");
+      return;
+    }
+
+    if (socket.connected) {
+      socket.emit("joinHostRoom", hostId);
+
+      // console.log("Host joined room:", `host${hostId}`);
+    }
+  }, [dashboard]);
 
   // =============================================
 
@@ -110,7 +160,6 @@ export default function HostDashboardPage() {
             ),
           }));
         }}
-
         onCancel={(cancelID) => {
           setDashboard((prev) => ({
             ...prev,
@@ -120,7 +169,7 @@ export default function HostDashboardPage() {
                     ...booking,
                     status: "cancelled",
                   }
-                : booking
+                : booking,
             ),
           }));
         }}
