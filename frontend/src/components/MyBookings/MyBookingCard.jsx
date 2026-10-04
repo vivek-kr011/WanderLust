@@ -20,7 +20,7 @@ export default function MyBookingCard({ booking, onCancel }) {
   const [isCancelling, setIsCancelling] = useState(false);
 
   // prevent if listing is not available
-  if(!listing) {
+  if (!listing) {
     return null;
   }
 
@@ -59,7 +59,6 @@ export default function MyBookingCard({ booking, onCancel }) {
   };
 
   const handleCancel = async () => {
-
     const confirmCancel = window.confirm(
       "Are you sure you want to cancel this booking?",
     );
@@ -90,7 +89,6 @@ export default function MyBookingCard({ booking, onCancel }) {
 
       // Success Toast
       toast.success("Booking cancelled successfully!");
-      
     } catch (error) {
       console.error(error);
 
@@ -163,7 +161,7 @@ export default function MyBookingCard({ booking, onCancel }) {
         {/* Status */}
 
         <div className="flex justify-end mt-8">
-          {status === "pending" && (
+          {(status === "pending" || status === "confirmed") && (
             <button
               onClick={handleCancel}
               disabled={isCancelling}
