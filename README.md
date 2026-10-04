@@ -308,120 +308,100 @@ Image Preview is part of the Version 1 development roadmap.
 
 # 🏗️ Application Architecture
 
-WanderLust follows a client-server architecture.
-
-```text
-                         ┌───────────────────────┐
-                         │        USER           │
-                         └───────────┬───────────┘
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │   React Frontend      │
-                         │                       │
-                         │  Pages               │
-                         │  Components          │
-                         │  Context             │
-                         │  React Router        │
-                         └───────────┬───────────┘
-                                     │
-                              HTTP / REST API
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │   Express Backend     │
-                         │                       │
-                         │ Routes               │
-                         │ Controllers          │
-                         │ Middleware           │
-                         │ Authentication       │
-                         │ Authorization        │
-                         └───────────┬───────────┘
-                                     │
-                      ┌──────────────┴──────────────┐
-                      │                             │
-                      ▼                             ▼
-             ┌─────────────────┐          ┌─────────────────┐
-             │     MongoDB     │          │    Cloudinary   │
-             │                 │          │                 │
-             │ Users           │          │ Property Images │
-             │ Listings        │          │                 │
-             │ Reviews         │          └─────────────────┘
-             │ Bookings        │
-             └─────────────────┘
-```
-
----
-
-# 🔄 Complete Request Flow
-
-A typical request follows this architecture:
-
-```text
-Browser
-   │
-   ▼
-React Component
-   │
-   ▼
-React Router
-   │
-   ▼
-API Request
-   │
-   ▼
-Express Server
-   │
-   ▼
-Authentication Middleware
-   │
-   ▼
-Authorization
-   │
-   ▼
-Controller / Route Logic
-   │
-   ▼
-Mongoose
-   │
-   ▼
-MongoDB
-   │
-   ▼
-JSON Response
-   │
-   ▼
-React State
-   │
-   ▼
-UI Update
-```
-
-## Whole-Project Architecture
+WanderLust uses a modular client-server architecture. REST APIs handle durable application data, while Socket.IO provides realtime booking updates over the same Node.js HTTP server.
 
 ```mermaid
 flowchart TB
-    User[Guest or host]
-    Frontend[React 19 + Vite<br/>React Router, Context API, Axios]
-    HTTP[Express REST API<br/>http://localhost:8080]
-    Realtime[Socket.IO<br/>same HTTP server]
-    Middleware[JWT verification<br/>Passport session, Joi validation]
-    Controllers[Controllers and route handlers]
-    Mongo[(MongoDB via Mongoose<br/>User, Listing, Review, Booking)]
-    Cloud[Cloudinary<br/>listing image storage]
-    Mapbox[Mapbox geocoding]
+    User[Guest or host browser]
+    Frontend[React + Vite frontend<br/>Pages, components, context, Axios]
+    HTTP[Express REST API<br/>Node.js HTTP server :8080]
+    Socket[Socket.IO realtime layer<br/>same HTTP server]
+    Security[JWT authentication<br/>ownership checks and validation]
+    Controllers[Route controllers<br/>bookings, listings, reviews, users]
+    Mongo[(MongoDB via Mongoose<br/>Users, listings, reviews, bookings)]
+    Cloud[Cloudinary<br/>listing images]
+    Mapbox[Mapbox<br/>location and geocoding]
 
     User --> Frontend
-    Frontend -->|JSON and multipart requests| HTTP
-    Frontend <-->|booking events| Realtime
-    HTTP --> Middleware --> Controllers
+    Frontend -->|REST JSON / multipart| HTTP
+    Frontend <-->|Socket.IO events| Socket
+    HTTP --> Security --> Controllers
     Controllers --> Mongo
     Controllers --> Cloud
     Controllers --> Mapbox
-    Controllers -->|newBooking / bookingConfirmed| Realtime
+    Controllers -->|booking event emission| Socket
 ```
 
----
+### Communication responsibilities
+
+| Layer | Responsibility |
+| --- | --- |
+| React frontend | Renders listings, booking pages, and host dashboard; keeps realtime state in sync |
+| Express REST API | Validates requests, authenticates users, applies ownership rules, and returns JSON |
+| Booking controllers | Creates, confirms, and cancels bookings; emits the matching realtime event |
+| MongoDB | Persists users, listings, reviews, and booking lifecycle state |
+| Socket.IO | Delivers booking changes without requiring a page refresh |
+| Cloudinary / Mapbox | Stores listing images and supports listing location data |
+
+## 🔄 HTTP Request Flow
+
+```mermaid
+sequenceDiagram
+    participant Browser as React browser
+    participant API as Express REST API
+    participant Auth as Auth and ownership middleware
+    participant Controller as Controller
+    participant DB as MongoDB
+
+    Browser->>API: HTTP request with JWT
+    API->>Auth: Verify token and permissions
+    Auth->>Controller: Forward validated request
+    Controller->>DB: Read or write application data
+    DB-->>Controller: Persisted result
+    Controller-->>Browser: JSON response
+    Browser->>Browser: Update UI state
+```
+
+## 🔌 Realtime Booking Flow
+
+Socket.IO is initialized on the same server as Express. Clients join user or host rooms after connecting, and booking controllers emit events after a successful database update.
+
+```mermaid
+sequenceDiagram
+    participant Guest as Guest browser
+    participant Host as Host dashboard
+    participant API as Booking controller
+    participant Socket as Socket.IO
+    participant DB as MongoDB
+
+    Guest->>API: POST /listings/:id/bookings/
+    API->>DB: Save booking with pending status
+    API->>Socket: Emit newBooking
+    Socket-->>Host: New populated booking
+    Host->>API: PATCH .../:bookingId/confirm
+    API->>DB: Set status to confirmed
+    API->>Socket: Emit bookingConfirmed to user:<userId>
+    Socket-->>Guest: Updated booking
+    Guest->>Guest: Update booking state
+
+    Guest->>API: PATCH .../:bookingId/cancel
+    API->>DB: Set status to cancelled
+    API->>Socket: Emit bookingCancelledByUser to host:<hostId>
+    Socket-->>Host: Updated cancelled booking
+    Host->>Host: Update dashboard state
+```
+
+### Socket.IO rooms and events
+
+| Event | Direction | Room / delivery | Purpose |
+| --- | --- | --- | --- |
+| `joinUserRoom(userId)` | Client → server | `user:<userId>` | Receives targeted updates for the logged-in guest |
+| `joinHostRoom(hostId)` | Client → server | `host:<hostId>` | Receives targeted updates for the listing owner |
+| `newBooking` | Server → clients | Current global broadcast | Adds a newly created booking to the host dashboard |
+| `bookingConfirmed` | Server → client | `user:<userId>` | Updates a guest booking after host confirmation |
+| `bookingCancelledByUser` | Server → host | `host:<hostId>` | Updates the host dashboard after guest cancellation |
+
+REST remains the source of truth; Socket.IO only synchronizes the relevant UI state after the database operation succeeds.
 
 # ⚛️ Frontend Architecture
 
@@ -541,9 +521,10 @@ The backend creates Socket.IO on the same Node HTTP server as Express. The front
 | Direction | Event | Delivery | Current behavior |
 | --- | --- | --- | --- |
 | Client -> server | `joinUserRoom(userId)` | User room | Joins `user:<userId>` for targeted confirmation updates |
-| Client -> server | `joinHostRoom(hostId)` | Host room | Supported by the server, but not currently emitted by the frontend |
+| Client -> server | `joinHostRoom(hostId)` | Host room | Joins `host:<hostId>` for targeted guest-cancellation updates |
 | Server -> client | `newBooking` | Global broadcast | Host dashboard prepends the populated booking to local state |
 | Server -> client | `bookingConfirmed` | `user:<userId>` | My Bookings updates the matching booking without a page refresh |
+| Server -> client | `bookingCancelledByUser` | `host:<hostId>` | Host dashboard updates the matching booking status |
 
 ```mermaid
 sequenceDiagram
@@ -555,6 +536,8 @@ sequenceDiagram
 
     Guest->>Socket: connect()
     Guest->>Socket: joinUserRoom(userId)
+    Host->>Socket: connect()
+    Host->>Socket: joinHostRoom(hostId)
     Guest->>API: POST /listings/:id/bookings/
     API->>DB: save pending booking
     API->>Socket: emit newBooking to all sockets
@@ -564,13 +547,19 @@ sequenceDiagram
     API->>Socket: emit bookingConfirmed to user:userId
     Socket-->>Guest: bookingConfirmed
     Guest->>Guest: update local booking state
+    Guest->>API: PATCH .../:bookingId/cancel
+    API->>DB: update status to cancelled
+    API->>Socket: emit bookingCancelledByUser to host:hostId
+    Socket-->>Host: bookingCancelledByUser
+    Host->>Host: update dashboard state
 ```
 
 ## Realtime status
 
 * Host-to-user confirmation is implemented and verified without a browser refresh.
-* Host-to-user cancellation is not complete: the backend changes the booking through REST but emits no cancellation event, and the guest page has no cancellation listener.
-* Host room targeting is not complete: `newBooking` is currently broadcast globally because the frontend does not call `joinHostRoom`.
+* Guest-to-host cancellation is implemented through `bookingCancelledByUser` and the host room.
+* `newBooking` remains a global broadcast; confirmation and guest cancellation use targeted user/host rooms.
+* Host-to-user cancellation currently changes MongoDB state through REST only and has no guest-facing realtime event.
 
 The detailed HTTP and event contract is maintained in [API_DOCUMENTATION.md](API_DOCUMENTATION.md).
 
@@ -1479,4 +1468,3 @@ Host -> User cancellation               PENDING
 The remaining cancellation work requires a backend cancellation event and a guest-side listener/state update. Host-room targeting also remains pending because `newBooking` is currently broadcast globally.
 
 ---
-
