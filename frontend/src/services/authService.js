@@ -1,7 +1,9 @@
 import axios from "axios";
+import { API_URL } from "./config";
 
 const API = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: API_URL,
+  withCredentials: true,
 });
 
 export const loginUser = async (userData) => {

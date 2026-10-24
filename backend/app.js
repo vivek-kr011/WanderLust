@@ -25,6 +25,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 
 const cors = require("cors");
+const { allowedOrigins } = require("./config/cors");
 
 const User = require("./models/user.js");
 
@@ -61,11 +62,6 @@ app.engine("ejs", ejsMate);
 /* ---------- Middlewares ------------ */
 
 // CORS (Frontend React)
-const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-
 app.use(
   cors({
     origin: allowedOrigins,
@@ -104,6 +100,8 @@ const sessionOptions = {
     expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
   },
 };
 

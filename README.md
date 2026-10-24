@@ -1206,7 +1206,10 @@ CLOUD_API_KEY=your_cloudinary_api_key
 CLOUD_API_SECRET=your_cloudinary_api_secret
 ```
 
-The backend currently listens on hard-coded port `8080`; `PORT` is not read by `backend/app.js`. The frontend and Socket.IO client expect `http://localhost:8080` and `http://localhost:5173` during local development.
+For local development, set `VITE_API_URL=http://localhost:8080` in `frontend/.env`.
+For the deployed frontend, set `VITE_API_URL=https://wanderlust-c75i.onrender.com` in Vercel.
+Set `FRONTEND_URL` in Render to `https://wander-lust-two-silk.vercel.app` (multiple origins may be comma-separated).
+The backend also allows these deployed and local origins by default.
 
 Do not commit `.env` to GitHub.
 

@@ -514,7 +514,7 @@ Requires a bearer token. Returns statistics and listings/bookings associated wit
 
 ## 10. Socket.IO Infrastructure
 
-Socket.IO is initialized on the same HTTP server as the REST API at `http://localhost:8080`. The frontend client connects automatically to that origin with credentials enabled. CORS permits the Vite origin `http://localhost:5173`.
+Socket.IO is initialized on the same HTTP server as the REST API. The frontend client connects automatically to `VITE_API_URL` with credentials enabled. CORS permits the local Vite origin and the deployed Vercel origin; additional origins can be supplied through the backend `FRONTEND_URL` environment variable.
 
 ### Client-to-server events
 
