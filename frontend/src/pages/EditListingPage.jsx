@@ -123,8 +123,8 @@ export default function EditListingPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-6">
-      <h1 className="text-3xl font-bold mb-8">Edit Listing</h1>
+    <div className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Edit Listing</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title */}
@@ -211,7 +211,7 @@ export default function EditListingPage() {
           <img
             src={imagePreview || listing.image.url}
             alt={listing.title}
-            className="w-80 max-h-80 object-cover rounded-lg mb-4"
+            className="w-full max-h-80 object-cover rounded-lg mb-4"
           />
         </div>
 
@@ -229,7 +229,7 @@ export default function EditListingPage() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-rose-500 text-white px-8 py-3 rounded-lg hover:bg-rose-600 disabled:bg-gray-400"
+          className="w-full sm:w-auto bg-rose-500 text-white px-8 py-3 rounded-lg hover:bg-rose-600 disabled:bg-gray-400"
         >
           {loading ? "Updating..." : "Update Listing"}
         </button>

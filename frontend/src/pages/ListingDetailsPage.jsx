@@ -121,27 +121,27 @@ export default function ListingDetailsPage() {
         {/* Left Column: Details & Reviews */}
         <div className="lg:col-span-2 space-y-8">
           {/* Host Info Bar */}
-          <div className="flex items-center justify-between pb-6 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                 Entire place hosted by {hostName}
               </h2>
               <p className="text-sm text-gray-500">
                 {listing.guests || 1} guest · {listing.bedrooms || 1} bedroom · {listing.beds || 1} bed · {listing.baths || 1} bath
               </p>
             </div>
-            <div className="w-14 h-14 bg-gray-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 bg-gray-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow">
               {hostInitial}
             </div>
           </div>
 
           {/* Action Buttons (Edit / Delete) - Owner Only */}
           {isOwner && (
-            <div className="flex items-center space-x-4 pb-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pb-6 border-b border-gray-200">
               <button
                 type="button"
                 onClick={() => navigate(`/listings/${listing._id}/edit`)}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg shadow transition flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
+                className="justify-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg shadow transition flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
               >
                 <i className="fa-solid fa-pen-to-square"></i>
                 <span>Edit Listing</span>
@@ -150,7 +150,7 @@ export default function ListingDetailsPage() {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow transition flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2"
+                className="justify-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow transition flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2"
               >
                 <i className="fa-solid fa-trash"></i>
                 <span>Delete Listing</span>

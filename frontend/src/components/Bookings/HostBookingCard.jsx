@@ -172,7 +172,7 @@ export default function HostBookingCard({ booking, onConfirm, onCancel }) {
         </div>
 
         {/* Status + Actions */}
-        <div className="mt-5 border-t pt-5 flex items-center justify-between gap-3">
+        <div className="mt-5 border-t pt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
           {/* Status */}
           <span
@@ -188,14 +188,14 @@ export default function HostBookingCard({ booking, onConfirm, onCancel }) {
           </span>
 
           {/* Actions */}
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
 
             {/* Pending → Confirm */}
             {booking.status === "pending" && (
               <button
                 onClick={handleConfirm}
                 disabled={isConfirming}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+                className="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
               >
                 {isConfirming ? "Confirming..." : "Confirm Booking"}
               </button>
@@ -206,7 +206,7 @@ export default function HostBookingCard({ booking, onConfirm, onCancel }) {
               <button
                 onClick={handleCancel}
                 disabled={isCancelling}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+                className="w-full sm:w-auto bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
               >
                 {isCancelling ? "Cancelling..." : "Cancel Booking"}
               </button>

@@ -43,9 +43,9 @@ export default function EditProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
-        <h2 className="text-2xl font-bold mb-6">Edit Profile</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-5 sm:p-8 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl sm:text-2xl font-bold mb-6">Edit Profile</h2>
 
         {/* Username */}
         <div className="mb-5">
@@ -82,10 +82,10 @@ export default function EditProfileModal({
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button
             onClick={() => setOpenModal(false)}
-            className="px-5 py-2 border rounded-lg hover:bg-gray-100 transition"
+            className="w-full sm:w-auto px-5 py-2 border rounded-lg hover:bg-gray-100 transition"
           >
             Cancel
           </button>
@@ -93,7 +93,7 @@ export default function EditProfileModal({
           <button
             onClick={handleSubmit}
             disabled={isUpdating}
-            className="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUpdating ? "Updating..." : "Save Changes"}
           </button>

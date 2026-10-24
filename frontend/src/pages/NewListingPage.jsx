@@ -84,8 +84,8 @@ export default function NewListingPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-6">
-      <h1 className="text-3xl font-bold mb-8">Create New Listing</h1>
+    <div className="max-w-3xl mx-auto py-8 sm:py-10 px-4 sm:px-6">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Create New Listing</h1>
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         {/* Title */}
@@ -192,7 +192,7 @@ export default function NewListingPage() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-rose-500 text-white px-8 py-3 rounded-lg hover:bg-rose-600 disabled:bg-gray-400"
+          className="w-full sm:w-auto bg-rose-500 text-white px-8 py-3 rounded-lg hover:bg-rose-600 disabled:bg-gray-400"
         >
           {loading ? "Creating..." : "Create Listing"}
         </button>

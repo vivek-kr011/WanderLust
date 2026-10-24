@@ -76,9 +76,9 @@ export default function BookingCard({ listing }) {
       {/* Unified Input Box (Professional Look) */}
       <div className="border border-gray-400 rounded-xl mb-4 overflow-hidden">
         {/* Dates Row */}
-        <div className="flex border-b border-gray-400 w-full">
+        <div className="flex flex-col sm:flex-row border-b border-gray-400 w-full">
           {/* Check In */}
-          <div className="flex-1 p-3 border-r border-gray-400 cursor-pointer hover:bg-gray-50 transition">
+          <div className="flex-1 p-3 border-b sm:border-b-0 sm:border-r border-gray-400 cursor-pointer hover:bg-gray-50 transition">
             <p className="text-[10px] font-bold text-gray-800 uppercase tracking-wide">
               Check In
             </p>

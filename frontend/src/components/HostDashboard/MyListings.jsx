@@ -49,12 +49,12 @@ export default function MyListings({ listings, onDelete }) {
 
       {/* Listings Grid */}
       {listings.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {listings.map((listing) => (
             <div key={listing._id}>
               <ListingCard listing={listing} />
 
-              <div className="flex gap-3 mt-3">
+              <div className="flex flex-col sm:flex-row gap-3 mt-3">
                 <button
                   onClick={() => navigate(`/listings/${listing._id}/edit`)}
                   className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium transition"

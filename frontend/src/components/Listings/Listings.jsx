@@ -27,7 +27,7 @@ function Listings() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 p-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6 lg:gap-8 px-0 sm:px-4 lg:px-8">
       {listings.map((listing) => (
         <ListingCard key={listing._id} listing={listing} />
       ))}

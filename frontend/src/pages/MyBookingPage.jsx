@@ -181,8 +181,8 @@ export default function MyBookingsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <h1 className="text-4xl font-bold mb-10">My Bookings</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-8 sm:mb-10">My Bookings</h1>
 
       {bookings.map((booking) => (
         <MyBookingCard

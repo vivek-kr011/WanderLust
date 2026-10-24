@@ -18,20 +18,20 @@ function SearchBar() {
   return (
     <form
       onSubmit={handleSubmit} 
-      className="flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm"
+      className="order-3 w-full sm:order-none sm:w-auto flex items-center border border-gray-300 rounded-full overflow-hidden shadow-sm"
     >
       <input
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         type="text"
         placeholder="Search destinations..."
-        className="px-4 py-2 w-72 outline-none"
+        className="min-w-0 flex-1 px-4 py-2 sm:w-72 outline-none"
       />
 
       <button
         type="submit"
         // onClick={handleSubmit}
-        className="bg-red-500 text-white px-5 py-2 hover:bg-red-600 transition"
+        className="shrink-0 bg-red-500 text-white px-4 sm:px-5 py-2 hover:bg-red-600 transition"
       >
         Search
       </button>

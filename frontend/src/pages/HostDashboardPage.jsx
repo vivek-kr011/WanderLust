@@ -130,8 +130,8 @@ export default function HostDashboardPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 pt-12 pb-8">
-      <h1 className="text-3xl font-bold mb-8">Host Dashboard Page</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 pb-8">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Host Dashboard Page</h1>
 
       <DashboardStats dashboard={dashboard} />
       {/* <MyListings listings={dashboard.listings} />  */}

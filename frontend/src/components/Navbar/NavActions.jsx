@@ -20,19 +20,19 @@ export default function NavActions() {
   };
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex items-center gap-2 sm:gap-5">
       {isAuthenticated ? (
         <>
           <Link
             to="/listings/new"
-            className="font-medium hover:text-rose-500 transition"
+            className="hidden lg:block font-medium hover:text-rose-500 transition"
           >
             Become a Host
           </Link>
 
           <Link
             to="/host-dashboard"
-            className="font-medium hover:text-rose-500 transition"
+            className="hidden lg:block font-medium hover:text-rose-500 transition"
           >
             Host Dashboard
           </Link>
@@ -45,13 +45,13 @@ export default function NavActions() {
           <div className="relative">
             <button
               onClick={() => setOpenMenu(!openMenu)}
-              className="flex items-center gap-3 border rounded-full px-4 py-2 hover:shadow-md transition"
+              className="flex items-center gap-2 border rounded-full px-3 py-2 sm:px-4 hover:shadow-md transition"
             >
               <HiBars3 className="text-xl" />
 
               <FaRegUserCircle className="text-2xl" />
 
-              <span className="font-medium">
+              <span className="hidden sm:inline font-medium">
                 {user?.username}
               </span>
             </button>

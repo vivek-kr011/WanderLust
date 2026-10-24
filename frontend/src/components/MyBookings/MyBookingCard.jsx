@@ -100,7 +100,7 @@ export default function MyBookingCard({ booking, onCancel }) {
     <div className="flex flex-col md:flex-row bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 mb-8">
       {/* Image */}
 
-      <div className="md:w-80 h-64">
+      <div className="w-full md:w-80 h-56 sm:h-64 shrink-0">
         <img
           src={listing.image.url}
           alt={listing.title}
@@ -110,9 +110,9 @@ export default function MyBookingCard({ booking, onCancel }) {
 
       {/* Details */}
 
-      <div className="flex-1 p-6 flex flex-col justify-between">
+      <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between min-w-0">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">{listing.title}</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 break-words">{listing.title}</h2>
 
           <div className="flex items-center gap-2 text-gray-500 mt-2">
             <FaMapMarkerAlt className="text-red-500" />
@@ -158,19 +158,19 @@ export default function MyBookingCard({ booking, onCancel }) {
 
         {/* Status */}
 
-        <div className="flex justify-end mt-8">
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-8">
           {(status === "pending" || status === "confirmed") && (
             <button
               onClick={handleCancel}
               disabled={isCancelling}
-              className="px-5 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition duration-300 mx-3"
+              className="px-5 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition duration-300"
             >
               {isCancelling ? "Cancelling..." : "Cancel Booking"}
             </button>
           )}
 
           <span
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor()}`}
+            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor()}`}
           >
             {getStatusIcon()}
             {status.toUpperCase()}
@@ -178,7 +178,7 @@ export default function MyBookingCard({ booking, onCancel }) {
 
           <Link
             to={`/listings/${listing._id}`}
-            className="px-5 py-2 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition duration-300"
+            className="text-center px-5 py-2 rounded-lg bg-black text-white font-medium hover:bg-gray-800 transition duration-300"
           >
             View Listing
           </Link>
