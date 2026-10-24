@@ -24,7 +24,7 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 
-const cors = require("cors"); 
+const cors = require("cors");
 
 const User = require("./models/user.js");
 
@@ -34,7 +34,6 @@ const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const bookingRoutes = require("./routes/booking.js");
 const dashboardRoutes = require("./routes/dashboard.js");
-
 
 const dbUrl = process.env.ATLASDB_URL;
 
@@ -59,15 +58,19 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.engine("ejs", ejsMate);
 
-
 /* ---------- Middlewares ------------ */
 
 // CORS (Frontend React)
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
-  })
+  }),
 );
 
 // Parse JSON
@@ -79,7 +82,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
 app.use(express.static(path.join(__dirname, "public")));
-
 
 /* ------------- Session Store --------------- */
 
@@ -140,13 +142,11 @@ app.use("/dashboard", dashboardRoutes);
 
 app.use("/", userRouter);
 
-
 /* ---------- 404 ----------- */
 
 app.all("*", (req, res, next) => {
   next(new ExpressError(404, "Page not found"));
 });
-
 
 /* ------------- Error Handler ------------*/
 
@@ -165,6 +165,8 @@ const server = http.createServer(app);
 
 initializeSocket(server);
 
-server.listen(8080, () => {
-  console.log("🚀 Server running on http://localhost:8080");
+const PORT = process.env.PORT || 8080;
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
 });
