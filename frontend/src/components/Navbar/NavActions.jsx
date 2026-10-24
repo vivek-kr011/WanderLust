@@ -30,6 +30,13 @@ export default function NavActions() {
             Become a Host
           </Link>
 
+          <Link
+            to="/host-dashboard"
+            className="font-medium hover:text-rose-500 transition"
+          >
+            Host Dashboard
+          </Link>
+
           <button className="text-xl hover:text-rose-500 transition">
             <FaGlobe />
           </button>
@@ -70,6 +77,16 @@ export default function NavActions() {
                   className="w-full text-left px-5 py-3 hover:bg-gray-100"
                 >
                   My Listings
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/host-dashboard");
+                    setOpenMenu(false);
+                  }}
+                  className="w-full text-left px-5 py-3 hover:bg-gray-100"
+                >
+                  Host Dashboard
                 </button>
 
                 <button

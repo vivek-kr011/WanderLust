@@ -1,7 +1,9 @@
 import { useContext, useState } from "react";
-import AuthContext from "../../context/AuthContext"
+import AuthContext from "../../context/AuthContext";
 
 import api from "../../services/api";
+
+import { toast } from "react-toastify";
 
 export default function BookingCard({ listing }) {
   const [checkIn, setCheckIn] = useState("");
@@ -12,11 +14,7 @@ export default function BookingCard({ listing }) {
 
   const { user } = useContext(AuthContext);
 
-  /*======================================= 
-    CALCULATE NUMBER OF NIGHTS
-    =======================================
-  */
-
+  /*================ CALCULATE NUMBER OF NIGHTS======================= */
   const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
 
   let nights = 0;
@@ -33,18 +31,13 @@ export default function BookingCard({ listing }) {
   /* Price Calculation */
   const totalPrice = listing.price * nights;
 
-  /* 
-    HANDLE RESERVE BUTTON
-  */
-
   const handleReserve = async () => {
-    if(!user) {
-      alert ("Please login to make a booking");
+    if (!user) {
+      toast.error("Please login to make a booking");
       return;
     }
 
     try {
-
       const token = localStorage.getItem("token");
 
       const res = await api.post(
@@ -57,27 +50,20 @@ export default function BookingCard({ listing }) {
           },
         },
         {
-          headers:{ 
-            Authorization: `Bearer ${token}`
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
         },
       );
 
-      alert (res.data.message);
-
+      toast.success(res.data.message || "Booking created successfully!");
     } catch (err) {
-      console.log(err);
+      console.error(err);
 
-      console.log(err.response?.data);
-
-      alert(
-        err.response?.data?.message ||
-        "Unable to create booking."
-      )
+      toast.error(err.response?.data?.message || "Unable to create booking.");
     }
-    console.log("Reserve Button Clicked")
-  }
-
+    console.log("Reserve Button Clicked");
+  };
 
   return (
     <div className="sticky top-24 border border-gray-200 rounded-2xl shadow-xl p-6 bg-white">
@@ -175,8 +161,8 @@ export default function BookingCard({ listing }) {
 
           ${
             !checkIn || !checkOut || nights <= 0
-            ? "bg-gray-300 cursor-not-allowed text-gray-500"
-            : "bg-rose-600 hover:bg-rose-700 text-white"
+              ? "bg-gray-300 cursor-not-allowed text-gray-500"
+              : "bg-rose-600 hover:bg-rose-700 text-white"
           }
         `}
       >

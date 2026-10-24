@@ -9,7 +9,6 @@ export default function EditProfileModal({
   setOpenModal,
   setUser,
 }) {
-//   console.log("EditProfileModal Render", openModal);
 
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -29,14 +28,13 @@ export default function EditProfileModal({
 
       // Update ProfilePage state
       setUser(res.data.user);
-
-      // Success message
-      toast.success(res.data.message);
+      
+      toast.success(res.data.message || "Profile updated successfully!");
 
       // Close Modal
       setOpenModal(false);
     } catch (error) {
-      console.log(error);
+      console.error(error);
 
       toast.error(error.response?.data?.message || "Something went wrong.");
     } finally {

@@ -82,13 +82,11 @@ export default function MyBookingCard({ booking, onCancel }) {
         },
       );
 
-      console.log(res.data);
-
       // Update parent state
       onCancel(booking._id);
 
       // Success Toast
-      toast.success("Booking cancelled successfully!");
+      toast.success(res.data.message || "Booking cancelled successfully!");
     } catch (error) {
       console.error(error);
 

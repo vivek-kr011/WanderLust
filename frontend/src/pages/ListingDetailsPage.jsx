@@ -1,17 +1,12 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-import { useCallback } from "react";
 
 import api from "../services/api";
 import AuthContext from "../context/AuthContext";
 
-import ListingHero from "../components/ListingDetails/ListingHero";
-import ListingInfo from "../components/ListingDetails/ListingInfo";
-import ListingDescription from "../components/ListingDetails/ListingDescription";
+import { toast } from "react-toastify";
 
 import BookingCard from "../components/ListingDetails/BookingCard";
-
 import ReviewSection from "../components/Reviews/ReviewSection";
 
 export default function ListingDetailsPage() {
@@ -24,11 +19,8 @@ export default function ListingDetailsPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchListing = useCallback(async () => {
-    
     const res = await api.get(`/listings/${id}`);
-
-    console.log("Listing Response: ", res.data)
-
+    console.log("Listing Response: ", res.data);
     return res.data.listing;
   }, [id]);
 
@@ -38,6 +30,7 @@ export default function ListingDetailsPage() {
       setListing(data);
     } catch (err) {
       console.error(err);
+      toast.error(err.response?.data?.message || "Unable to refresh listing");
     }
   };
 
@@ -48,6 +41,7 @@ export default function ListingDetailsPage() {
         setListing(data);
       } catch (err) {
         console.error(err);
+        toast.error(err.response?.data?.message || "Unable to load listing");
       } finally {
         setLoading(false);
       }
@@ -72,18 +66,16 @@ export default function ListingDetailsPage() {
         },
       });
 
-      alert(res.data.message);
-
+      toast.success(res.data.message || "Listing deleted successfully!");
       navigate("/");
     } catch (err) {
       console.error(err);
-
-      alert(err.response?.data?.message || "Unable to delete listing");
+      toast.error(err.response?.data?.message || "Unable to delete listing");
     }
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-xl">Loading Listing...</div>;
+    return <div className="text-center py-20 text-xl text-gray-600">Loading Listing...</div>;
   }
 
   if (!listing) {
@@ -96,51 +88,99 @@ export default function ListingDetailsPage() {
 
   const isOwner =
     isAuthenticated && user && listing.owner && user.id === listing.owner._id;
+
+  const hostName = listing.owner?.username || "Host";
+  const hostInitial = hostName.charAt(0).toUpperCase();
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-20">
-      <ListingHero listing={listing} />
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Listing Title & Location */}
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          {listing.title}
+        </h1>
+        <p className="mt-1 text-sm text-gray-600 flex items-center">
+          <i className="fa-solid fa-location-dot text-rose-500 mr-1.5"></i>
+          <span className="underline font-medium">
+            {listing.location}, {listing.country}
+          </span>
+        </p>
+      </div>
 
-      {/* Listing + Booking */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-10">
-        {/* Left Side */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
-          <ListingInfo listing={listing} />
+      {/* Image Gallery Showcase */}
+      <div className="mb-8 rounded-2xl overflow-hidden shadow-lg h-[350px] sm:h-[450px] relative bg-gray-100">
+        <img
+          src={listing.image?.url || listing.image}
+          alt={listing.title || "Listing Image"}
+          className="w-full h-full object-cover"
+        />
+      </div>
 
-          {/* Owner Actions */}
+      {/* Layout Grid: Details & Booking Box */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {/* Left Column: Details & Reviews */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Host Info Bar */}
+          <div className="flex items-center justify-between pb-6 border-b border-gray-200">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Entire place hosted by {hostName}
+              </h2>
+              <p className="text-sm text-gray-500">
+                {listing.guests || 1} guest · {listing.bedrooms || 1} bedroom · {listing.beds || 1} bed · {listing.baths || 1} bath
+              </p>
+            </div>
+            <div className="w-14 h-14 bg-gray-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow">
+              {hostInitial}
+            </div>
+          </div>
+
+          {/* Action Buttons (Edit / Delete) - Owner Only */}
           {isOwner && (
-            <div className="flex gap-4">
+            <div className="flex items-center space-x-4 pb-6 border-b border-gray-200">
               <button
+                type="button"
                 onClick={() => navigate(`/listings/${listing._id}/edit`)}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-medium transition"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg shadow transition flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
               >
-                Edit Listing
+                <i className="fa-solid fa-pen-to-square"></i>
+                <span>Edit Listing</span>
               </button>
 
               <button
+                type="button"
                 onClick={handleDelete}
-                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-medium transition"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow transition flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2"
               >
-                Delete Listing
+                <i className="fa-solid fa-trash"></i>
+                <span>Delete Listing</span>
               </button>
             </div>
           )}
 
-          <hr className="border-gray-200" />
+          {/* About This Place */}
+          <div className="pb-6 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              About this place
+            </h3>
+            <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+              {listing.description}
+            </p>
+          </div>
 
-          <ListingDescription listing={listing} />
+          {/* Reviews Section */}
+          <div>
+            <ReviewSection listing={listing} refreshListing={refreshListing} />
+          </div>
         </div>
 
-        {/* Right Side */}
-        <div className="relative">
-          <BookingCard listing={listing} />
+        {/* Right Column: Sticky Booking Card */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-28">
+            <BookingCard listing={listing} />
+          </div>
         </div>
       </div>
-
-      {/* Reviews Section */}
-      {/* receive review section */}
-      <div className="mt-16">
-        <ReviewSection listing={listing} refreshListing={refreshListing}/>
-      </div>
-    </div>
+    </main>
   );
 }

@@ -85,7 +85,14 @@ export default function AppRoutes() {
           }
         />
 
-        <Route path="/host-dashboard" element={<HostDashboardPage />} />
+        <Route
+          path="/host-dashboard"
+          element={
+            <ProtectedRoute>
+              <HostDashboardPage />
+            </ProtectedRoute>
+          }
+        />
         
       </Route>
       

@@ -7,12 +7,13 @@ import api from "../services/api";
 import AuthLayout from "../components/Auth/AuthLayout";
 import AuthInput from "../components/Auth/AuthInput";
 import AuthButton from "../components/Auth/AuthButton";
-import Divider from "../components/Auth/Divider";
-import SocialLoginButton from "../components/Auth/SocialLoginButton";
+// import Divider from "../components/Auth/Divider";
+// import SocialLoginButton from "../components/Auth/SocialLoginButton";
+
+import { toast } from "react-toastify";
 
 export default function SignupPage() {
   const navigate = useNavigate();
-
   const { login } = useContext(AuthContext);
 
   const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ export default function SignupPage() {
     confirmPassword: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]  = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -36,7 +37,7 @@ export default function SignupPage() {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      return alert("Passwords do not match");
+      return toast.error("Passwords do not match");
     }
 
     try {
@@ -46,98 +47,99 @@ export default function SignupPage() {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        fullName: formData.fullName,
       });
 
-      // Save user & token in AuthContext
       login(res.data.user, res.data.token);
-
-      alert(res.data.message);
-
+      toast.success(res.data.message || "Account created successfully!");
       navigate("/");
     } catch (err) {
-      alert(
-        err.response?.data?.message || "Signup failed"
-      );
+      toast.error(err.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout
-      title="Create Account"
-      subtitle="Join WanderLust today"
-    >
-      <form onSubmit={handleSubmit}>
-        <AuthInput
-          label="Full Name"
-          name="fullName"
-          placeholder="Enter your full name"
-          value={formData.fullName}
-          onChange={handleChange}
-        />
+    <AuthLayout title="Create Account" subtitle="Join WanderLust & start exploring or hosting today">
+      <div className="bg-white border border-gray-100 shadow-xl rounded-3xl p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <AuthInput
+              label="Full Name"
+              name="fullName"
+              placeholder="Enter full name"
+              value={formData.fullName}
+              onChange={handleChange}
+            />
+            <AuthInput
+              label="Username"
+              name="username"
+              placeholder="Choose username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <AuthInput
-          label="Username"
-          name="username"
-          placeholder="Choose a username"
-          value={formData.username}
-          onChange={handleChange}
-          required
-        />
-
-        <AuthInput
-          label="Email"
-          name="email"
-          type="email"
-          placeholder="Enter your email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-
-        <AuthInput
-          label="Password"
-          name="password"
-          type="password"
-          placeholder="Create a password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-
-        <AuthInput
-          label="Confirm Password"
-          name="confirmPassword"
-          type="password"
-          placeholder="Confirm your password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          required
-        />
-
-        <div className="mt-6">
-          <AuthButton
-            type="submit"
-            text={loading ? "Creating..." : "Create Account"}
-            disabled={loading}
+          <AuthInput
+            label="Email Address"
+            name="email"
+            type="email"
+            placeholder="name@example.com"
+            value={formData.email}
+            onChange={handleChange}
+            required
           />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <AuthInput
+              label="Password"
+              name="password"
+              type="password"
+              placeholder="At least 6 characters"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+            <AuthInput
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              placeholder="Re-enter password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="pt-3">
+            <AuthButton
+              type="submit"
+              text={loading ? "Creating Account..." : "Agree and Continue"}
+              disabled={loading}
+            />
+          </div>
+        </form>
+
+        {/* <Divider />
+
+        <div className="mt-4">
+          <SocialLoginButton />
+        </div> */}
+
+        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <p className="text-sm text-gray-500">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-bold text-rose-500 hover:text-rose-600 transition"
+            >
+              Log in
+            </Link>
+          </p>
         </div>
-      </form>
-
-      <Divider />
-
-      <SocialLoginButton />
-
-      <p className="text-center text-sm text-gray-600 mt-6">
-        Already have an account?{" "}
-        <Link
-          to="/login"
-          className="font-semibold text-rose-500 hover:text-rose-600"
-        >
-          Login
-        </Link>
-      </p>
+      </div>
     </AuthLayout>
   );
 }

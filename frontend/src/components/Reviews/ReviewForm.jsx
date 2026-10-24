@@ -3,6 +3,10 @@ import { useParams } from "react-router-dom";
 
 import api from "../../services/api";
 
+import { toast } from "react-toastify";
+
+import { FaStar } from "react-icons/fa";
+
 export default function ReviewForm({ refreshListing }) {
   const { id } = useParams();
 
@@ -33,10 +37,10 @@ export default function ReviewForm({ refreshListing }) {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      alert(res.data.message);
+      toast.success(res.data.message || "Review created successfully!");
 
       await refreshListing();
 
@@ -45,49 +49,54 @@ export default function ReviewForm({ refreshListing }) {
         rating: "",
         comment: "",
       });
-
     } catch (err) {
-      alert(
-        err.response?.data?.message ||
-        "Unable to submit review"
-      );
+      toast.error(err.response?.data?.message || "Unable to submit review");
     }
   };
 
   return (
     <div className="mt-8">
-      <h3 className="text-xl font-semibold mb-6">
-        Leave a Review
-      </h3>
+      <h3 className="text-xl font-semibold mb-6">Leave a Review</h3>
 
       <form className="space-y-5" onSubmit={handleSubmit}>
-
+        {/* Rating */}
         {/* Rating */}
         <div>
-          <label className="block mb-2 font-medium">
-            Rating
-          </label>
+          <label className="block mb-2 font-medium">Rating</label>
 
-          <select
-            name="rating"
-            value={formData.rating}
-            onChange={handleChange}
-            className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
-          >
-            <option value="">Select Rating</option>
-            <option value="1">⭐ 1 - Poor</option>
-            <option value="2">⭐⭐ 2 - Fair</option>
-            <option value="3">⭐⭐⭐ 3 - Good</option>
-            <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
-            <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
-          </select>
+          <div className="flex items-center gap-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    rating: String(star),
+                  }))
+                }
+                aria-label={`Rate ${star} out of 5 stars`}
+                className="text-2xl transition hover:scale-110"
+              >
+                <FaStar
+                  className={
+                    star <= Number(formData.rating)
+                      ? "text-yellow-400"
+                      : "text-gray-300"
+                  }
+                />
+              </button>
+            ))}
+
+            <span className="ml-2 text-sm text-gray-600">
+              {formData.rating ? `${formData.rating}/5` : "Select rating"}
+            </span>
+          </div>
         </div>
 
         {/* Comment */}
         <div>
-          <label className="block mb-2 font-medium">
-            Comment
-          </label>
+          <label className="block mb-2 font-medium">Comment</label>
 
           <textarea
             rows="5"
@@ -106,7 +115,6 @@ export default function ReviewForm({ refreshListing }) {
         >
           Submit Review
         </button>
-
       </form>
     </div>
   );

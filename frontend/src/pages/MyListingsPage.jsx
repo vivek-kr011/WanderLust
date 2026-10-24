@@ -8,8 +8,6 @@ import { Link } from "react-router-dom";
 export default function MyListingsPage() {
   const [listings, setListings] = useState([]);
 
-  console.log(listings);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,7 +26,7 @@ export default function MyListingsPage() {
 
         setListings(res.data.listings);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setError(error.response?.data?.message || "Failed to fetch listings.");
 
         toast.error(

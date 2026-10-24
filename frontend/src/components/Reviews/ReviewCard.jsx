@@ -3,6 +3,8 @@ import AuthContext from "../../context/AuthContext";
 
 import api from "../../services/api";
 
+import { toast } from "react-toastify";
+
 export default function ReviewCard({ review, listingId, refreshListing }) {
   const { user } = useContext(AuthContext);
 
@@ -10,7 +12,6 @@ export default function ReviewCard({ review, listingId, refreshListing }) {
 
   /* OPTIONAL CHAINNING (?) */
   const isReviewAuthor = user?.id === review.author?._id;
-
 
   const handleDelete = async () => {
     try {
@@ -27,13 +28,13 @@ export default function ReviewCard({ review, listingId, refreshListing }) {
         },
       );
 
-      alert(res.data.message);
+      toast.success(res.data.message || "Review deleted successfully!");
 
       await refreshListing();
     } catch (err) {
       console.error(err);
 
-      alert(err.response?.data?.message || "Unable to delete review");
+      toast.error(err.response?.data?.message || "Unable to delete review");
     }
   };
 

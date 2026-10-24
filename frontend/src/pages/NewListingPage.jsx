@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import api from "../services/api";
+
+import { toast } from "react-toastify";
 
 export default function NewListingPage() {
   const navigate = useNavigate();
@@ -17,6 +19,23 @@ export default function NewListingPage() {
   });
 
   const [image, setImage] = useState(null);
+
+  const [imagePreview, setImagePreview] = useState(null);
+
+  const handleImageChange = (e) => {
+    const selectedImage = e.target.files?.[0] || null;
+
+    setImage(selectedImage);
+    setImagePreview(selectedImage ? URL.createObjectURL(selectedImage) : null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -52,15 +71,13 @@ export default function NewListingPage() {
         },
       });
 
-      alert(res.data.message);
-
+      // alert(res.data.message);
+      toast.success(res.data.message || "Listing created successfully!");
       navigate("/");
-    } catch (err) {
-      console.error(err);
-
-      alert(
-        err.response?.data?.message || "Unable to create listing"
-      );
+      
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Unable to create listing");
     } finally {
       setLoading(false);
     }
@@ -68,19 +85,12 @@ export default function NewListingPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-6">
-      <h1 className="text-3xl font-bold mb-8">
-        Create New Listing
-      </h1>
+      <h1 className="text-3xl font-bold mb-8">Create New Listing</h1>
 
-      <form
-        className="space-y-6"
-        onSubmit={handleSubmit}
-      >
+      <form className="space-y-6" onSubmit={handleSubmit}>
         {/* Title */}
         <div>
-          <label className="block mb-2 font-medium">
-            Title
-          </label>
+          <label className="block mb-2 font-medium">Title</label>
 
           <input
             type="text"
@@ -95,9 +105,7 @@ export default function NewListingPage() {
 
         {/* Description */}
         <div>
-          <label className="block mb-2 font-medium">
-            Description
-          </label>
+          <label className="block mb-2 font-medium">Description</label>
 
           <textarea
             rows="5"
@@ -112,9 +120,7 @@ export default function NewListingPage() {
 
         {/* Price */}
         <div>
-          <label className="block mb-2 font-medium">
-            Price
-          </label>
+          <label className="block mb-2 font-medium">Price</label>
 
           <input
             type="number"
@@ -129,9 +135,7 @@ export default function NewListingPage() {
 
         {/* Location */}
         <div>
-          <label className="block mb-2 font-medium">
-            Location
-          </label>
+          <label className="block mb-2 font-medium">Location</label>
 
           <input
             type="text"
@@ -146,9 +150,7 @@ export default function NewListingPage() {
 
         {/* Country */}
         <div>
-          <label className="block mb-2 font-medium">
-            Country
-          </label>
+          <label className="block mb-2 font-medium">Country</label>
 
           <input
             type="text"
@@ -163,17 +165,29 @@ export default function NewListingPage() {
 
         {/* Image */}
         <div>
-          <label className="block mb-2 font-medium">
-            Upload Image
-          </label>
+          <label className="block mb-2 font-medium">Upload Image</label>
 
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setImage(e.target.files[0])}
+            onChange={handleImageChange}
             required
           />
         </div>
+
+        {imagePreview && (
+          <div className="mt-4">
+            <p className="mb-2 text-sm font-medium text-gray-600">
+              Image Preview
+            </p>
+
+            <img
+              src={imagePreview}
+              alt="Listing preview"
+              className="w-full max-h-80 object-cover rounded-lg border"
+            />
+          </div>
+        )}
 
         <button
           type="submit"

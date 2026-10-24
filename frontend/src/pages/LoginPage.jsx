@@ -7,12 +7,13 @@ import AuthContext from "../context/AuthContext";
 import AuthLayout from "../components/Auth/AuthLayout";
 import AuthInput from "../components/Auth/AuthInput";
 import AuthButton from "../components/Auth/AuthButton";
-import Divider from "../components/Auth/Divider";
-import SocialLoginButton from "../components/Auth/SocialLoginButton";
+// import Divider from "../components/Auth/Divider";
+// import SocialLoginButton from "../components/Auth/SocialLoginButton";
+
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-
   const { login } = useContext(AuthContext);
 
   const [formData, setFormData] = useState({
@@ -37,73 +38,69 @@ export default function LoginPage() {
 
       const res = await api.post("/login", formData);
 
-      console.log("LOGIN RESPONSE:", res.data);
-      console.log("LOGIN USER:", res.data.user);
-
-      // Save token using AuthContext
-      // login(res.data.token);
+      // Save user & token using AuthContext
       login(res.data.user, res.data.token);
 
-      alert(res.data.message);
-
+      toast.success(res.data.message || "Login successful!");
       navigate("/");
     } catch (err) {
-      alert(
-        err.response?.data?.message || "Login failed"
-      );
+      toast.error(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout
-      title="Welcome Back"
-      subtitle="Continue your journey"
-    >
-      <form onSubmit={handleSubmit}>
-        <AuthInput
-          label="Email"
-          name="email"
-          type="email"
-          placeholder="Enter your email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-
-        <AuthInput
-          label="Password"
-          name="password"
-          type="password"
-          placeholder="Enter your password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-
-        <div className="mt-6">
-          <AuthButton
-            type="submit"
-            text={loading ? "Logging in..." : "Login"}
-            disabled={loading}
+    <AuthLayout title="Welcome Back" subtitle="Continue your journey with WanderLust">
+      <div className="bg-white border border-gray-100 shadow-xl rounded-3xl p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <AuthInput
+            label="Email Address"
+            name="email"
+            type="email"
+            placeholder="name@example.com"
+            value={formData.email}
+            onChange={handleChange}
+            required
           />
+
+          <AuthInput
+            label="Password"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+
+          <div className="pt-3">
+            <AuthButton
+              type="submit"
+              text={loading ? "Logging in..." : "Continue"}
+              disabled={loading}
+            />
+          </div>
+        </form>
+
+        {/* <Divider />
+
+        <div className="mt-4">
+          <SocialLoginButton />
+        </div> */}
+
+        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <p className="text-sm text-gray-500">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="font-bold text-rose-500 hover:text-rose-600 transition"
+            >
+              Sign Up
+            </Link>
+          </p>
         </div>
-      </form>
-
-      <Divider />
-
-      <SocialLoginButton />
-
-      <p className="text-center text-sm text-gray-600 mt-6">
-        Don't have an account?{" "}
-        <Link
-          to="/signup"
-          className="font-semibold text-rose-500 hover:text-rose-600"
-        >
-          Sign Up
-        </Link>
-      </p>
+      </div>
     </AuthLayout>
   );
 }

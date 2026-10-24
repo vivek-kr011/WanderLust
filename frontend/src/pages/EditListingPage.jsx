@@ -3,15 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import api from "../services/api";
 
+import { toast } from "react-toastify";
+
 export default function EditListingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-
   const [listing, setListing] = useState(null);
-
   const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -39,6 +40,7 @@ export default function EditListingPage() {
         });
       } catch (err) {
         console.error(err);
+        toast.error(err.response?.data?.message || "Unable to load listing");
       } finally {
         setLoading(false);
       }
@@ -46,6 +48,21 @@ export default function EditListingPage() {
 
     fetchListing();
   }, [id]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  const handleImageChange = (e) => {
+    const selectedImage = e.target.files?.[0] || null;
+
+    setImage(selectedImage);
+    setImagePreview(selectedImage ? URL.createObjectURL(selectedImage) : null);
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -81,28 +98,20 @@ export default function EditListingPage() {
         },
       });
 
-      alert(res.data.message);
+      toast.success(res.data.message || "Listing updated successfully!");
 
       navigate(`/listings/${id}`);
-
     } catch (err) {
       console.error(err);
 
-      alert(
-        err.response?.data?.message ||
-          "Unable to update listing"
-      );
+      toast.error(err.response?.data?.message || "Unable to update listing");
     } finally {
       setLoading(false);
     }
   };
 
   if (loading && !listing) {
-    return (
-      <div className="text-center py-20 text-xl">
-        Loading...
-      </div>
-    );
+    return <div className="text-center py-20 text-xl">Loading...</div>;
   }
 
   if (!listing) {
@@ -115,22 +124,13 @@ export default function EditListingPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-6">
+      <h1 className="text-3xl font-bold mb-8">Edit Listing</h1>
 
-      <h1 className="text-3xl font-bold mb-8">
-        Edit Listing
-      </h1>
-
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6"
-      >
-
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title */}
 
         <div>
-          <label className="block mb-2 font-medium">
-            Title
-          </label>
+          <label className="block mb-2 font-medium">Title</label>
 
           <input
             type="text"
@@ -145,9 +145,7 @@ export default function EditListingPage() {
         {/* Description */}
 
         <div>
-          <label className="block mb-2 font-medium">
-            Description
-          </label>
+          <label className="block mb-2 font-medium">Description</label>
 
           <textarea
             rows="5"
@@ -162,9 +160,7 @@ export default function EditListingPage() {
         {/* Price */}
 
         <div>
-          <label className="block mb-2 font-medium">
-            Price
-          </label>
+          <label className="block mb-2 font-medium">Price</label>
 
           <input
             type="number"
@@ -179,9 +175,7 @@ export default function EditListingPage() {
         {/* Location */}
 
         <div>
-          <label className="block mb-2 font-medium">
-            Location
-          </label>
+          <label className="block mb-2 font-medium">Location</label>
 
           <input
             type="text"
@@ -196,9 +190,7 @@ export default function EditListingPage() {
         {/* Country */}
 
         <div>
-          <label className="block mb-2 font-medium">
-            Country
-          </label>
+          <label className="block mb-2 font-medium">Country</label>
 
           <input
             type="text"
@@ -210,31 +202,27 @@ export default function EditListingPage() {
           />
         </div>
 
-        {/* Current Image */}
-
+        {/* Current Image / Preview */}
         <div>
           <label className="block mb-2 font-medium">
-            Current Image
+            {imagePreview ? "New Image Preview" : "Current Image"}
           </label>
 
           <img
-            src={listing.image.url}
+            src={imagePreview || listing.image.url}
             alt={listing.title}
-            className="w-80 rounded-lg mb-4"
+            className="w-80 max-h-80 object-cover rounded-lg mb-4"
           />
         </div>
 
         {/* Upload New Image */}
-
         <div>
-          <label className="block mb-2 font-medium">
-            Upload New Image
-          </label>
+          <label className="block mb-2 font-medium">Upload New Image</label>
 
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setImage(e.target.files[0])}
+            onChange={handleImageChange}
           />
         </div>
 
@@ -245,9 +233,7 @@ export default function EditListingPage() {
         >
           {loading ? "Updating..." : "Update Listing"}
         </button>
-
       </form>
-
     </div>
   );
 }
