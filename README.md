@@ -1,15 +1,43 @@
 # 🏡 WanderLust
 
-> A full-stack hotel and property listing platform where users can discover accommodations, view property details, make bookings, write reviews, and hosts can manage their listings.
+## 📸 Preview
 
-WanderLust is a full-stack accommodation listing platform originally developed with **Node.js, Express.js, MongoDB, and EJS** and currently being evolved into a modern **React + Vite frontend application** while reusing and extending the existing backend architecture.
+<p align="center">
+    <img src="frontend/src/assets/Project-Image/wanderlust.png" alt="WanderLust accommodation marketplace preview" width="100%" />
+</p>
 
-The project focuses on building a real-world property marketplace with authentication, authorization, property management, reviews, bookings, image handling, and host-side functionality.
+<p align="center">
+    <strong>A full-stack accommodation marketplace for discovering stays, managing listings, and handling bookings.</strong>
+</p>
+
+<p align="center">
+    <a href="https://wander-lust-two-silk.vercel.app/">🌐 Live Demo</a>
+    ·
+    <a href="API_DOCUMENTATION.md">📚 API Documentation</a>
+</p>
+
+<p align="center">
+    <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19" />
+    <img src="https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white" alt="Node.js 22" />
+    <img src="https://img.shields.io/badge/Express.js-4-000000?logo=express&logoColor=white" alt="Express.js" />
+    <img src="https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white" alt="MongoDB and Mongoose" />
+    <img src="https://img.shields.io/badge/Socket.IO-Realtime-010101?logo=socket.io&logoColor=white" alt="Socket.IO" />
+    <img src="https://img.shields.io/badge/License-ISC-blue" alt="ISC License" />
+</p>
+
+WanderLust combines a **React + Vite frontend** with a **Node.js and Express backend**, MongoDB persistence, Cloudinary image storage, JWT authentication, and Socket.IO booking updates.
+
+The project is designed as a practical property marketplace where guests can discover and book accommodations while hosts can create listings, manage properties, and process bookings.
+
+> **Live application:** [wander-lust-two-silk.vercel.app](https://wander-lust-two-silk.vercel.app/)
+
+The current frontend experience is available in the repository preview above and through the live deployment.
 
 ---
 
 ## 📌 Table of Contents
 
+* [Preview](#-preview)
 * [Overview](#-overview)
 * [Features](#-features)
 * [Technology Stack](#-technology-stack)
