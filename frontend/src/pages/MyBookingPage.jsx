@@ -142,11 +142,31 @@ export default function MyBookingsPage() {
   /*======================================== */
 
   if (loading) {
-    return <h2>Loading...</h2>;
+    return (
+      <div
+        className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center"
+        role="status"
+        aria-live="polite"
+      >
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-rose-500"
+          aria-hidden="true"
+        />
+        <p className="mt-4 text-sm font-medium text-gray-600">
+          Loading your bookings...
+        </p>
+      </div>
+    );
   }
 
   if (error) {
-    return <h2>{error}</h2>;
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-4 text-center">
+        <p className="rounded-xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-600">
+          {error}
+        </p>
+      </div>
+    );
   }
 
   const handleCancelBooking = (bookingId) => {
